@@ -1,11 +1,11 @@
-### example.R --- 
+### appendixA-lowD.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: sep  9 2022 (13:24) 
 ## Version: 
-## Last-Updated: sep  9 2022 (13:24) 
+## Last-Updated: sep 14 2022 (17:33) 
 ##           By: Brice Ozenne
-##     Update #: 1
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,8 +20,9 @@ library(mvtnorm)
 library(ggplot2)
 library(data.table)
 library(lava)
-library(LMMstar) ## require development version >= 0.8.0
-## can be installed using remotes::install_github("bozenne/LMMstar")
+library(LMMstar) ## require development version >= 0.8.0 which can be installed using remotes::install_github("bozenne/LMMstar")
+
+## NOTE: see appendix A in the google doc for the comments
 
 ## * Simulate data
 ## ** settings
@@ -86,7 +87,7 @@ psi.se <- sqrt(diag(Sigma_psi))
 Sigma_t <- Sigma_psi / tcrossprod(psi.se)
 Sigma_t
 
-## Waæd statistic
+## Wald statistic
 waldStat <- psi/psi.se
 waldStat
 
@@ -236,22 +237,21 @@ e.mlmmML <- mlmm(value~group, repetition = ~1|id, data = dtL, df = FALSE, robust
 summary(e.mlmmML, method = "pool.fixse")
 summary(e.mlmmML, method = "pool.se")
 
-## ** GLS
+## ** PCA
+eigen_psi <- eigen(Sigma_psi)
+weight <- colSums(eigen_psi$vectors)^2/eigen_psi$values
+eigenvector.norm <- sweep(eigen_psi$vectors, FUN = "/", MARGIN = 2, STATS = colSums(eigen_psi$vectors))
+weighted.mean(psi %*% eigenvector.norm, weight)
+## [1] 0.253689
+
+summary(e.mlmmML, method = "pool.gls")
+##                           estimate    se  df lower upper p.value  
+## pipeline=<V1:V5>: groupG2    0.254 0.115 Inf 0.028 0.479  0.0276 *
+
+## ** Joint model
 e.glsUN <- lmm(value ~ pipeline + group, repetition = ~pipeline|id, data = dtL,
                structure = "UN")
 model.tables(e.glsUN)["groupG2",]
-
-e.glsCS <- lmm(value ~ pipeline + group, repetition = ~pipeline|id, data = dtL,
-               structure = "CS")
-model.tables(e.glsCS)["groupG2",]
-
-## ** PCA
-eigen_psi <- eigen(Sigma_psi)
-kappa <- sweep(eigen_psi$vectors, FUN = "/", MARGIN = 2, STATS = colSums(eigen_psi$vectors))
-omega <- eigen_psi$values/colSums(eigen_psi$vectors)^2
-weighted.mean(psi %*% kappa, w = 1/omega)
-
-summary(e.mlmmML, method = "pool.pca")
 
 ## * Systematic differences
 psi[-1] - psi[1]
@@ -268,4 +268,4 @@ summary(eT.mlmm, method = "single-step")
 summary(eT.mlmm, method = "Westfall")
 
 ##----------------------------------------------------------------------
-### example.R ends here
+### appendixA-lowD.R ends here

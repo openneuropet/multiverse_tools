@@ -1,0 +1,23 @@
+\documentclass[a4paper]{article}
+\usepackage{pgfplots}
+\usepackage[pdftex,active,tightpage]{preview} % to get standalone diagram
+
+\begin{document}
+
+\def\centerx{0}
+\def\centery{0}
+\def\level{0.05/(2*3.14)}
+\begin{preview}
+\begin{tikzpicture}
+    \begin{axis}[zlabel={Density}]
+    
+    \addplot3[surf,domain=-4:4,domain y=-4:4] 
+    {exp(-( (x-\centerx)^2 + (y-\centery)^2)/2 )/(2*3.14)};
+   
+     \addplot3[color=black,line width=2pt] coordinates {(-3,3,\level) (-3,-3,\level)  (3,-3,\level) (3,3,\level) (0.49,3,\level)};
+       
+     \node[yshift=1.35cm,xshift=6cm] at (3,3) {$\left|t_{max}\right|=3$};
+    \end{axis}
+\end{tikzpicture}
+\end{preview}
+\end{document}
