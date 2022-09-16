@@ -1,0 +1,75 @@
+### simulation-scenario1.R --- 
+##----------------------------------------------------------------------
+## Author: Brice Ozenne
+## Created: sep 15 2022 (16:48) 
+## Version: 
+## Last-Updated: sep 16 2022 (12:15) 
+##           By: Brice Ozenne
+##     Update #: 39
+##----------------------------------------------------------------------
+## 
+### Commentary: 
+## 
+### Change Log:
+##----------------------------------------------------------------------
+## 
+### Code:
+
+## cd /projects/biostat01/people/hpl802/pipeline/
+## source("simulation-scenario2.R")
+
+## * Dependencies
+library(mvtnorm)
+library(data.table)
+library(Matrix)
+library(LMMstar)
+library(pbapply)
+source("simulation-FCT.R")
+
+## * Parameters
+seqN <- c(10, 25, 50, 100, 200)
+beta <- 0.5
+n.sim <- c(10000,100) ## number of simulations, number of times proportion is esitmated
+n.cpus <- 25
+Sigma <- diag(c(2.5,0.25,5,7.5,10,15))
+
+## * GLS weights
+## solve(matrix(1, nrow = 1, ncol = NCOL(Sigma)) %*% solve(Sigma) %*% matrix(1, nrow = NCOL(Sigma), ncol = 1)) %*% matrix(1, nrow = 1, ncol = NCOL(Sigma)) %*% solve(Sigma)
+sqrt(diag(Sigma))/min(sqrt(diag(Sigma)))
+
+colSums(solve(Sigma))/sum(solve(Sigma))
+(1/diag(Sigma))/sum((1/diag(Sigma)))
+
+## * Simulation
+##  test
+## dt.ex <- simData(n.obs = 250, sigma.pipe = Sigma, beta = 0)
+## analyzeData(dt.ex)
+
+## dt.ex <- simData(n.obs = 100, sigma.pipe = Sigma, beta = beta)
+## system.time(
+##     analyzeData(dt.ex, proportion = TRUE)
+## )
+## system.time(
+##     analyzeData(dt.ex, proportion = FALSE)
+## )
+
+ls.sim2 <- pblapply(1:n.sim[1], function(iSim){ ## iSim <- 1
+    iOut <- NULL
+    for(iN in seqN){ ## iN <- 200
+        iOut <- rbind(iOut,
+                      analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2]),
+                      analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = beta), proportion = iSim<=n.sim[2])
+                      )
+    }
+    return(cbind(sim=iSim,iOut))
+}, cl = n.cpus)
+
+## * Export
+out2 <- do.call(rbind,ls.sim2)
+rownames(out2) <- NULL
+saveRDS(out2, file = "results/sim2.rds")
+sessionInfo()
+
+
+##----------------------------------------------------------------------
+### simulation-scenario1.R ends here
