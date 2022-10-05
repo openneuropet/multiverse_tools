@@ -1,11 +1,11 @@
-### simulation-BUILD.R --- 
+### BUILD_simulation.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: sep 16 2022 (09:44) 
 ## Version: 
-## Last-Updated: sep 16 2022 (16:43) 
+## Last-Updated: okt  5 2022 (10:44) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -166,4 +166,4 @@ dev.off()
 
 
 ##----------------------------------------------------------------------
-### simulation-BUILD.R ends here
+### BUILD_simulation.R ends here
