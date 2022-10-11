@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt  5 2022 (13:30) 
+## Last-Updated: okt 10 2022 (12:32) 
 ##           By: Brice Ozenne
-##     Update #: 51
+##     Update #: 57
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 ## * simData
-simData <- function(n.obs, sigma.pipe, beta){
+simData <- function(n.obs, sigma.pipe, beta, df = Inf){
     require(mvtnorm)
     require(data.table)
 
@@ -31,8 +31,12 @@ simData <- function(n.obs, sigma.pipe, beta){
                           Y = rnorm(2*n.obs, mean = beta*(as.numeric(X)-1), sd = 1))
 
     ## generate observed Y
-    noise.pipeline <- mvtnorm::rmvnorm(n=2*n.obs, sigma = sigma.pipe)
-
+    if(is.infinite(df)){
+        noise.pipeline <- mvtnorm::rmvnorm(n=2*n.obs, sigma = sigma.pipe)
+    }else{
+        noise.pipeline <- mvtnorm::rmvt(n=2*n.obs, sigma = sigma.pipe, df = df)
+    }
+    
     for(iP in 1:n.pipe){
         dtW.data[, c(paste0("Ypip.",iP)) := Y + noise.pipeline[,iP]]
     }
@@ -53,9 +57,9 @@ analyzeData <- function(data, proportion, print.weight = FALSE, df = TRUE){
     require(LMMstar)
     e.mlmm <- do.call(mlmm, list(Ypip ~ X, repetition = ~1|id, data = data$long, by = "pipeline", effects = "XMale=0", df = df))
 
-    pool.average <- model.tables(e.mlmm, method = "average")
-    pool.fixse <- model.tables(e.mlmm, method = "pool.fixse")
-    pool.gls <- model.tables(e.mlmm, method = "pool.gls")
+    pool.average <- confint(e.mlmm, method = "average", columns = c("estimate","se","df","lower","upper","p.value"))
+    pool.fixse <- confint(e.mlmm, method = "pool.fixse", columns = c("estimate","se","df","lower","upper","p.value"))
+    pool.gls <- confint(e.mlmm, method = "pool.gls", columns = c("estimate","se","df","lower","upper","p.value"))
     M.iid <- do.call(cbind,lapply(e.mlmm$model, function(iM){iid(iM)[,"XMale",drop=FALSE]}))
     M.rSigmaM1 <- robustInverse(M.iid)
     pool.robust <- data.frame(estimate = sum(M.rSigmaM1 %*% coef(e.mlmm)) / sum(M.rSigmaM1), se = NA, df = NA, lower = NA, upper = NA, p.value = NA)

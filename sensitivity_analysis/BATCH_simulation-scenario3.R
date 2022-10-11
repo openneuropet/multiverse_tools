@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt  5 2022 (13:46) 
+## Last-Updated: okt 10 2022 (15:02) 
 ##           By: Brice Ozenne
-##     Update #: 49
+##     Update #: 53
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,11 +16,25 @@
 ### Code:
 
 ## cd /projects/biostat01/people/hpl802/pipeline/
+## ## INTERACTIVE
 ## source("BATCH_simulation-scenario3.R")
+## ## BATCH
+## for ITER in `seq 1 10`;
+## do
+## eval 'R CMD BATCH --vanilla "--args iter_sim='$ITER' n.iter_sim=10" BATCH_simulation-scenario3.R output/simulation-scenario3/simulation-scenario3-'$ITER'.Rout &'
+## done
+## 390564-390573
 
 ## * SLURM
-iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
-n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
+args <- commandArgs(TRUE) ## BATCH MODE
+if(length(args)>0){
+    for (arg in args){
+        eval(parse(text=arg))
+    }
+}else{ ## SLUMR
+    iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+    n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
+}
 if(is.na(iter_sim)){iter_sim <- 1}
 if(is.na(n.iter_sim)){n.iter_sim <- 10}
 
@@ -72,8 +86,8 @@ Sigmatot <- Sigma+diag(1,NROW(Sigma),NROW(Sigma))
 cat("\n Relative variance: ")
 relativeVar <- sqrt(diag(Sigmatot))/min(sqrt(diag(Sigmatot)))
 print(table(round(relativeVar,4)))
-     ## 1 1.6733 2.1909 2.6077 2.9665 3.5777 
-     ## 1     15      1      1      1      1 
+## 1 1.6733 2.1909 2.6077 2.9665 3.5777 
+## 1     15      1      1      1      1 
 
 cat("\n Pool weights: ")
 Sigma2weight <- round(100*(1/diag(Sigmatot))/sum((1/diag(Sigmatot))),2)
@@ -93,10 +107,10 @@ for(iSim in 1:n.sim[1]){
     cat(iSim,": ")
     for(iN in seqN){ ## iN <- 200
         cat(iN," ")
-        res <- rbind(res,
-                     cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2])),
-                     cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = beta), proportion = iSim<=n.sim[2]))
-                     )
+        try(res <- rbind(res,
+                         cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2]))))
+        try(res <- rbind(res,
+                         cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = beta), proportion = iSim<=n.sim[2]))))
     }
     cat("\n")
     saveRDS(res, file = file.path(path.res,paste0("scenario3_",iter_sim,"(tempo).rds")))

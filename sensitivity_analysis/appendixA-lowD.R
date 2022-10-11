@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep  9 2022 (13:24) 
 ## Version: 
-## Last-Updated: sep 15 2022 (16:13) 
+## Last-Updated: okt 10 2022 (10:55) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -164,6 +164,8 @@ plot(e.mlmm)
 ## ** naive
 mean(psi)
 summary(e.mlmm, method = "average")
+##        estimate    se  df lower upper p.value  
+## <1, 5>    0.277 0.116 Inf 0.049 0.505   0.017 *
 
 ## ** variance pooling
 psi.w <- 1/psi.se^2
@@ -171,10 +173,13 @@ weighted.mean(psi, psi.w)
 sum(psi*psi.w)/sum(psi.w)
 
 e.mlmm <- mlmm(value~group, repetition = ~1|id, data = dtL, df = FALSE, robust = TRUE,
-                by = "pipeline", effects = "groupG2=0")
-
+               by = "pipeline", effects = "groupG2=0")
 summary(e.mlmm, method = "pool.fixse")
+##        estimate    se  df lower upper p.value  
+## <1, 5>    0.274 0.116 Inf 0.047 0.501  0.0179 *
 summary(e.mlmm, method = "pool.se")
+##        estimate    se  df lower upper p.value  
+## <1, 5>    0.274 0.116 Inf 0.047 0.501   0.018 *
 
 e.mlmmML <- mlmm(value~group, repetition = ~1|id, data = dtL, df = FALSE, robust = TRUE,
                  by = "pipeline", effects = "groupG2=0", method.fit = "ML")
@@ -196,6 +201,8 @@ summary(e.mlmmML, method = "pool.gls")
 e.glsUN <- lmm(value ~ pipeline + group, repetition = ~pipeline|id, data = dtL,
                structure = "UN")
 model.tables(e.glsUN)["groupG2",]
+##          estimate        se       df      lower     upper    p.value
+## groupG2 0.2536891 0.1179854 184.4765 0.02091489 0.4864632 0.03284328
 
 ## * Systematic differences
 psi[-1] - psi[1]

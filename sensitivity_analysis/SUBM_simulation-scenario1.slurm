@@ -2,20 +2,20 @@
 
 #SBATCH --job-name=simulation-scenario1  # Job name
 #SBATCH --array=1-10     # Number of jobs
-#SBATCH --partition=standard    # Queue. Use long for run time >8h and standard otherwise
+#SBATCH --partition=long    # Queue. Use long for run time >8h and standard otherwise
 #SBATCH --mem=1G # Memory limit, e.g. reserve 1 GB memory 
 #SBATCH --output=output/simulation-scenario1/slurm-%x-%a-%J.out # Direct output to subdirectory
 #SBATCH --error=output/simulation-scenario1/slurm-%x-%a-%J.out # Same file for output and error
 
-R CMD BATCH --vanilla BATCH_simulation-scenario1.R output/simulation-scenario1/R-$SLURM_JOB_NAME-$SLURM_ARRAY_TASK_ID-$SLURM_JOB_ID.Rout
+R CMD BATCH --vanilla BATCH_simulation-scenario1.R output/simulation-scenario1/R-$SLURM_JOB_NAME-$SLURM_ARRAY_TASK_ID-$SLURM_JOB_ID.Rout½
 
 ## go to directory    ## cd c:/Users/hpl802/Documents/Github/multiverse_tools/sensitivity_analysis/
-                      ## cd /projects/biostat01/people/hpl802/c:/Users/hpl802/Documents/Github/multiverse_tools/sensitivity_analysis/
+                      ## cd /projects/biostat01/people/hpl802/pipeline/
 ## clean outputs      ## rm -r ./output/simulation-scenario1/*
 ## clean results      ## rm -r ./Results/simulation-scenario1/*
 ## submission command ## sbatch SUBM_simulation-scenario1.slurm
 
-## submission output  ## Submitted batch job 2259162 (time using C-c t: onsdag 22-10-05 at 13:53) 
+## submission output  ## Submitted batch job 2326079 (time using C-c t: mandag 22-10-10 at 12:37) 
 
 ## init               ## module module load gcc/11.2.0 R/4.1.2
                       ## cat .bash_profile (in the root directory on the server to visualize the current configuration)

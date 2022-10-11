@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 12 2022 (16:13) 
 ## Version: 
-## Last-Updated: sep 14 2022 (17:33) 
+## Last-Updated: okt 10 2022 (12:29) 
 ##           By: Brice Ozenne
-##     Update #: 15
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -69,8 +69,8 @@ mean(psi)
 ## pool according to uncertainty
 model.tables(e.mlmm, method = "pool.se")
 ##                              estimate        se  df      lower     upper   p.value
-## pipeline=<V1:V60>: groupG2 0.07305267 0.2239727 Inf -0.3659258 0.5120311 0.7442975
-weighted.mean(psi, w = 1/diag(Sigma_psi))
+## [1] 0.07305267
+weighted.mean(psi, w = 1/diag(Sigma_psi)) ## robust se
 ## [1] 0.07305267
 
 ## pool according to uncertainty and correlation (GLS)
