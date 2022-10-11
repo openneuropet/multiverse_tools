@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Oct 11 2022 (12:03) 
 ## Version: 
-## Last-Updated: Oct 11 2022 (12:17) 
+## Last-Updated: Oct 11 2022 (12:22) 
 ##           By: Brice Ozenne
-##     Update #: 4
+##     Update #: 5
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,12 +31,12 @@ df <- rbind(data.frame(pipeline = name.pip,
             data.frame(pipeline = name.pip,
                        estimator = "GLS",
                        weight = wGLS/100))
-df$pipeline <- factor(df$pipeline, name.pip)
+df$pipeline <- factor(df$pipeline, rev(name.pip))
 df$estimator <- factor(df$estimator, rev(unique(df$estimator)))
 
 gg.bar <- ggplot(df, aes(fill=pipeline, y=weight, x=estimator))
 gg.bar <- gg.bar + geom_bar(position="stack", stat="identity")
-gg.bar <- gg.bar + scale_fill_manual(values = c(gray.colors(15),rainbow(5)))
+gg.bar <- gg.bar + scale_fill_manual(values = c(rainbow(5),gray.colors(15)))
 gg.bar <- gg.bar + coord_flip() + scale_y_continuous(labels = scales::percent)
 gg.bar <- gg.bar + ggtitle("Scenario 3")
 gg.bar <- gg.bar + theme(text = element_text(size=15), 
