@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Oct 11 2022 (12:03) 
 ## Version: 
-## Last-Updated: Oct 11 2022 (12:04) 
+## Last-Updated: Oct 11 2022 (12:17) 
 ##           By: Brice Ozenne
-##     Update #: 3
+##     Update #: 4
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,7 +21,7 @@ wAverage <- rep(5,20)
 wPool <- c(rep(3.81,15),38.1,1.9,1.2,0.95,0.63)
 wGLS <- c(rep(0.57,15),81.31,4.07,2.71,2.03,1.36)
 
-name.pip <- c(paste0("C",1:9,"  (\u03C3=2.5)"),paste0("C",10:15," (\u03C3=2.5)"),paste0("I",1:5,"     (\u03C3=",c(0.25,5,7,10,15),")"))
+name.pip <- c(paste0("C",1:9,"  (\u03C3\u00B2=2.5)"),paste0("C",10:15," (\u03C3\u00B2=2.5)"),paste0("I",1:5,"     (\u03C3\u00B2=",c(0.25,5,7,10,15),")"))
 df <- rbind(data.frame(pipeline = name.pip,
                        estimator = "average",
                        weight = wAverage/100),
@@ -40,6 +40,7 @@ gg.bar <- gg.bar + scale_fill_manual(values = c(gray.colors(15),rainbow(5)))
 gg.bar <- gg.bar + coord_flip() + scale_y_continuous(labels = scales::percent)
 gg.bar <- gg.bar + ggtitle("Scenario 3")
 gg.bar <- gg.bar + theme(text = element_text(size=15), 
+                         legend.text = element_text(size=9), 
                          axis.line.x = element_line(size = 1.25),
                          axis.title = element_blank(),
                          axis.ticks = element_line(size = 2),
@@ -49,11 +50,11 @@ gg.bar <- gg.bar + theme(text = element_text(size=15),
                          plot.background=element_blank(),
                          panel.background=element_blank(),
                          panel.border=element_blank(),
-                         legend.key.size = unit(1,"line"))
+                         legend.key.size = unit(0.75,"line"))
 gg.bar
 
-ggsave(gg.bar, filename = "figures/gg-weights-scenario3.pdf", width = 10, device = cairo_pdf)
-ggsave(gg.bar, filename = "figures/gg-weights-scenario3.png", width = 10, device = cairo_pdf)
+ggsave(gg.bar, filename = "figures/gg-weights-scenario3.pdf", height =  4, width = 10, device = cairo_pdf)
+ggsave(gg.bar, filename = "figures/gg-weights-scenario3.png", height =  4, width = 10, device = cairo_pdf)
 
 
 ##----------------------------------------------------------------------
