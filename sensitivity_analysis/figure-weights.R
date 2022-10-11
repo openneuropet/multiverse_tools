@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Oct 11 2022 (12:03) 
 ## Version: 
-## Last-Updated: Oct 11 2022 (12:22) 
+## Last-Updated: Oct 11 2022 (12:26) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 8
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,12 +21,12 @@ wAverage <- rep(5,20)
 wPool <- c(rep(3.81,15),38.1,1.9,1.2,0.95,0.63)
 wGLS <- c(rep(0.57,15),81.31,4.07,2.71,2.03,1.36)
 
-name.pip <- c(paste0("C",1:9,"  (\u03C3\u00B2=2.5)"),paste0("C",10:15," (\u03C3\u00B2=2.5)"),paste0("I",1:5,"     (\u03C3\u00B2=",c(0.25,5,7,10,15),")"))
+name.pip <- c(paste0("C",1:9,"   (\u03C3\u00B2=2.5)"),paste0("C",10:15," (\u03C3\u00B2=2.5)"),paste0("I",1:5,"    (\u03C3\u00B2=",c(0.25,5,7,10,15),")"))
 df <- rbind(data.frame(pipeline = name.pip,
                        estimator = "average",
                        weight = wAverage/100),
             data.frame(pipeline = name.pip,
-                       estimator = "Pool",
+                       estimator = "pool-se",
                        weight = wPool/100),
             data.frame(pipeline = name.pip,
                        estimator = "GLS",
