@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt 10 2022 (15:01) 
+## Last-Updated: okt 11 2022 (13:56) 
 ##           By: Brice Ozenne
-##     Update #: 64
+##     Update #: 66
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,8 +35,6 @@ if(length(args)>0){
     iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
     n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
 }
-iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
-n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
 if(is.na(iter_sim)){iter_sim <- 1}
 if(is.na(n.iter_sim)){n.iter_sim <- 10}
 
@@ -77,7 +75,7 @@ source("FCT_simulation.R")
 ## * Parameters
 seqN <- c(10, 25, 50, 100, 200, 500)
 beta <- 0.5
-n.sim <- c(1000,25) ## number of simulations, number of times proportion is estimated
+n.sim <- c(100,10) ## number of simulations, number of times proportion is estimated
 n.cpus <- 25
 Sigma <- diag(c(2.5,0.25,5,7.5,10,15))
 Sigmatot <- Sigma+diag(1,NROW(Sigma),NROW(Sigma))

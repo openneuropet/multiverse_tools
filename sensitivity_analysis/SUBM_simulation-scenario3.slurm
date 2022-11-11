@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH --job-name=simulation-scenario3  # Job name
-#SBATCH --array=1-10     # Number of jobs
-#SBATCH --partition=long    # Queue. Use long for run time >8h and standard otherwise
+#SBATCH --array=1-100     # Number of jobs
+#SBATCH --partition=standard    # Queue. Use long for run time >8h and standard otherwise
 #SBATCH --mem=1G # Memory limit, e.g. reserve 1 GB memory 
 #SBATCH --output=output/simulation-scenario3/slurm-%x-%a-%J.out # Direct output to subdirectory
 #SBATCH --error=output/simulation-scenario3/slurm-%x-%a-%J.out # Same file for output and error
@@ -15,7 +15,7 @@ R CMD BATCH --vanilla BATCH_simulation-scenario3.R output/simulation-scenario3/R
 ## clean results      ## rm -r ./Results/simulation-scenario3/*
 ## submission command ## sbatch SUBM_simulation-scenario3.slurm
 
-## submission output  ## Submitted batch job 2326083 (time using C-c t: mandag 22-10-10 at 12:39) 
+## submission output  ## Submitted batch job 2334399 (time using C-c t: tirsdag 22-10-11 at 13:46) 
 
 ## init               ## module module load gcc/11.2.0 R/4.1.2
                       ## cat .bash_profile (in the root directory on the server to visualize the current configuration)

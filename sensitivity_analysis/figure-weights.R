@@ -1,11 +1,11 @@
-### figure-weights.R --- 
+### FIGURE-weights.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: Oct 11 2022 (12:03) 
 ## Version: 
-## Last-Updated: Oct 11 2022 (12:26) 
+## Last-Updated: okt 12 2022 (11:51) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -58,4 +58,4 @@ ggsave(gg.bar, filename = "figures/gg-weights-scenario3.png", height =  4, width
 
 
 ##----------------------------------------------------------------------
-### figure-weights.R ends here
+### FIGURE-weights.R ends here

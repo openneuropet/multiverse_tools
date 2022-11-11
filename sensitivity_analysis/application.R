@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: sep 16 2022 (15:40) 
+## Last-Updated: nov  7 2022 (17:31) 
 ##           By: Brice Ozenne
-##     Update #: 35
+##     Update #: 39
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,6 +29,8 @@ library(ggpubr)
 ## From martinnoergaard (slack 12-09-2022)
 ## I have extracted the following 28 regions, that were averaged between left and right.
 ## This corresponds to the column indexes [6, 13, 1, 8, 3, 10, 2, 9, 39, 73, 5, 12, 27, 61, 24, 58, 41, 75, 43, 77, 48, 82, 22, 56, 42, 76, 19, 53]
+
+## ** pipeline data
 dico.region <- matrix(c(6, 13, 1, 8, 3, 10, 2, 9, 39, 73, 5, 12, 27, 61, 24, 58, 41, 75, 43, 77, 48, 82, 22, 56, 42, 76, 19, 53), ncol = 2, byrow = TRUE,
                       dimnames = list(c("amygdala", "thalamus", "putamen", "caudate", "ACC", "hippocampus", "OFC", "SFC", "OC", "STG", "insula", "ITG", "PC", "EC"), c("left","right")))
 
@@ -46,6 +48,18 @@ dtav <- data.table(pipeline = dtraw[[1]],
                   (dtraw[,.SD,.SDcols = colnames(dtraw)[2+dico.region[,1]]]+dtraw[,.SD,.SDcols = colnames(dtraw)[2+dico.region[,2]]])/2)
 names(dtav)[3:NCOL(dtav)] <- rownames(dico.region)
 
+## ** atlas data
+dfAll.atlas <- read.csv(file.path("data","bp_table.csv"))
+df.atlas <- dfAll.atlas[-1,1:10]
+names(df.atlas) <- c("mean.DASB","sd.DASB","mean.cumi","sd.cumi","mean.az","sd.az","mean.cimbi","sd.cimbi","mean.sb","sd.sb")
+
+type.region <- which(rowSums(df.atlas!="")==0)
+reptype.region <- diff(c(type.region,NROW(df.atlas)+1))
+
+dt.atlas <- cbind(region = rownames(df.atlas),
+                  type = unlist(lapply(1:length(type.region), function(iR){rep(names(type.region[iR]),reptype.region[iR])})),
+                  data.table(do.call(cbind,lapply(df.atlas,as.numeric))))[region!=type]
+
 
 ## * Process data
 dtW <- dtav[pipeline!=5]
@@ -55,9 +69,20 @@ dtW <- dtav[pipeline!=5]
 ## ** region-specific
 name.region <- rownames(dico.region)
 
+name.region[name.region %in% tolower(dt.atlas$region) == FALSE]
+
+
 ls.mlmmRS <- lapply(name.region, function(iRegion){ ## iRegion <- "amygdala"
+    
+    if(iRegion %in% tolower(dt.atlas$region)){
+        null.value <- dt.atlas[tolower(region) == iRegion, mean.DASB]
+    }else{
+        null.value <- 0
+    }
+
     iFormula <- as.formula(paste0(iRegion,"~1"))
-    e.mlmm <- do.call("mlmm", list(iFormula, repetition = ~1|index, data = dtW, by = "pipeline", effects = "(Intercept)=2"))
+    e.mlmm <- do.call("mlmm", list(iFormula, repetition = ~1|index, data = dtW, by = "pipeline", effects = paste0("(Intercept)=",null.value)))
+
 })
 ## any pipeline with an effect
 summary(ls.mlmmRS[[1]], method = "single-step", columns = c("estimate","se","df","null","lower","upper","p.value"))

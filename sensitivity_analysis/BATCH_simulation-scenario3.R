@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt 10 2022 (15:02) 
+## Last-Updated: okt 11 2022 (13:44) 
 ##           By: Brice Ozenne
-##     Update #: 53
+##     Update #: 54
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -75,7 +75,7 @@ source("FCT_simulation.R")
 ## * Parameters
 seqN <- c(10, 25, 50, 100, 200, 500)
 beta <- 0.5
-n.sim <- c(1000,25) ## number of simulations, number of times proportion is esitmated
+n.sim <- c(100,10) ## number of simulations, number of times proportion is esitmated
 n.cpus <- 50
 Sigma <- as.matrix(bdiag((diag(0.05,15,15) + 0.95)*2.5, matrix(0.25), matrix(5), matrix(7.5), matrix(10), matrix(15)))
 Sigmatot <- Sigma+diag(1,NROW(Sigma),NROW(Sigma))
