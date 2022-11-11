@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: nov 11 2022 (17:52) 
+## Last-Updated: nov 11 2022 (18:23) 
 ##           By: Brice Ozenne
-##     Update #: 53
+##     Update #: 54
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -226,7 +226,7 @@ table.pvalue[1:7];table.pvalue[8:14]
 
 
 ## *** at least one pipeline with no effect
-do.call(rbind,lapply(ls.mlmmRS, FUN = function(iLMM){
+M.interH0 <- do.call(rbind,lapply(ls.mlmmRS, FUN = function(iLMM){
     max(model.tables(iLMM)$p.value)
 }))
 ##                    [,1]
@@ -247,7 +247,8 @@ do.call(rbind,lapply(ls.mlmmRS, FUN = function(iLMM){
 
 ## *** proportion of pipelines with an effect
 ls.prop <- lapply(ls.mlmmRS, proportion, method = "single-step", n.sample = 0)
-do.call(rbind,ls.prop)[,1:5]
+M.prop <- do.call(rbind,ls.prop)[,1:5]
+M.prop[,"estimate"] <- paste0(round(100*M.prop[,"estimate"],2),"%")
 ##              estimate se df lower upper
 ## amygdala    0.5121319 NA NA    NA    NA
 ## thalamus    0.6493860 NA NA    NA    NA
@@ -263,6 +264,9 @@ do.call(rbind,ls.prop)[,1:5]
 ## ITG         0.9763883 NA NA    NA    NA
 ## PC          0.5522278 NA NA    NA    NA
 ## EC          1.0000000 NA NA    NA    NA
+
+
+
 
 ## *** common effect
 
@@ -291,7 +295,12 @@ eigen(cov2cor(vcov(e.mlmmG)))$values
 
 
 
-
+## * table
+df.xtable <- data.frame("proportion of pipelines with a difference" = M.prop[,"estimate"],
+                          "p.value against at least one pipeline with no difference" = M.interH0[,1],
+                          "p.value against all pipelines with no difference" = apply(do.call(cbind,lapply(ls.SmlmmRS,"[","p.value")),2,min),
+                          check.names = FALSE)
+xtable::xtable(df.xtable[sort(rownames(df.xtable)),])
 ## * figures
 
 ## ** Data
@@ -320,7 +329,7 @@ ls.forestRScrop <- lapply(names(ls.forestRS), function(iName){
         return(iGG + theme(plot.margin=unit(c(-0.25,0.1,-0.25,0.1),"cm")))
     }
 })
-do.call(egg::ggarrange,c(ls.forestRScrop, list(nrow = 3)))
+gg.forestRS <- do.call(egg::ggarrange,c(ls.forestRScrop, list(nrow = 3)))
 
 ls.heatRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
     iPlot <- plot(eMLMM, type = "heat", plot = FALSE)
