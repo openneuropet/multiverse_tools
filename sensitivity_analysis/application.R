@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: nov 11 2022 (18:23) 
+## Last-Updated: nov 23 2022 (18:08) 
 ##           By: Brice Ozenne
-##     Update #: 54
+##     Update #: 56
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -51,8 +51,9 @@ rename.region <-  as.data.frame(rbind(c(combined = "amygdala",    left = "Left-A
                                       c(combined = "EC",          left = "entorhinal",               right = "entorhinal2")
                                       ))
 
-rename.pip <- cbind(fullname = c(paste0("pipeline ",1:4," (correlated)  "), paste0("pipeline ",1:8," (uncorrelated)")),
-                    shortname = c(paste0("pip",1:4,"C"), paste0("pip",1:8,"U")))
+## exclude last two pipelines (LOGAN)
+rename.pip <- cbind(fullname = c(paste0("pipeline ",1:4," (correlated)  "), paste0("pipeline ",3+1:6," (uncorrelated)")),
+                    shortname = c(paste0("pip",1:4,"C"), paste0("pip",3+1:6,"U")))
                     
 
 ## * Import data
@@ -61,7 +62,7 @@ rename.pip <- cbind(fullname = c(paste0("pipeline ",1:4," (correlated)  "), past
 ls.dfraw <- c(lapply(1:4, function(iPip){ ## iPip <- 1
     cbind(pipeline.index = iPip, read_xls(file.path("data","correlatedData_intervention.xls"), sheet = iPip, .name_repair = "minimal"))
 }),
-lapply(5:12, function(iPip){
+lapply(5:10, function(iPip){
     cbind(pipeline.index = iPip, read_xls(file.path("data","uncorrelatedData_intervention.xls"), sheet = iPip-4, .name_repair = "minimal"))
 })
 )
@@ -72,7 +73,7 @@ ls.dfraw[[5]] <- NULL
 
 ## check large values and put NA there
 M.checkLarge <- do.call(rbind,lapply(ls.dfraw, function(iData){apply(abs(iData[,colnames(iData) %in% unlist(rename.region[2:3])]),2,max)}))
-rownames(M.checkLarge) <- c(paste0("uncorrelated",1:4),paste0("correlated",2:8))
+rownames(M.checkLarge) <- c(paste0("uncorrelated",1:4),paste0("correlated",2:6))
 round(M.checkLarge[,colSums(M.checkLarge>1e3)>0])
 ##               superiorfrontal superiorfrontal.1
 ## uncorrelated1               1                 1
@@ -176,53 +177,45 @@ table.pvalue[table.pvalue==0] <- "<0.001"
 colnames(table.estimate) <- names(ls.SmlmmRS)
 colnames(table.pvalue) <- names(ls.SmlmmRS)
 
-table.estimate[1:7];table.estimate[8:14]
-##                           amygdala thalamus putamen caudate   ACC hippocampus   OFC
-## pipeline 1 (correlated)      2.044    2.021   2.232   1.738 0.862       0.754 0.700
-## pipeline 2 (correlated)      2.035    2.030   2.231   1.747 0.864       0.751 0.696
-## pipeline 3 (correlated)      2.025    1.961   2.193   1.690 0.839       0.733 0.680
-## pipeline 4 (correlated)      2.020    1.978   2.198   1.706 0.843       0.733 0.679
-## pipeline 2 (uncorrelated)    1.851    2.284   2.150   1.569 0.855       0.783 0.676
-## pipeline 3 (uncorrelated)    1.828    2.274   2.134   1.564 0.841       0.821 0.667
-## pipeline 4 (uncorrelated)    2.001    2.008   2.208   1.738 0.865       0.769 0.697
-## pipeline 5 (uncorrelated)    1.853    2.288   2.149   1.560 0.840       0.778 0.659
-## pipeline 7 (uncorrelated)    2.408    2.688   2.872   2.439 1.791       1.641 1.650
-## pipeline 8 (uncorrelated)    2.396    2.680   2.861   2.431 1.784       1.659 1.644
-##                             SFC    OC   STG insula   ITG    PC    EC
-## pipeline 1 (correlated)   0.454 0.524 0.724  1.110 0.446 0.453 0.925
-## pipeline 2 (correlated)   0.458 0.523 0.725  1.110 0.440 0.454 0.902
-## pipeline 3 (correlated)   0.428 0.516 0.704  1.084 0.441 0.419 0.928
-## pipeline 4 (correlated)   0.435 0.516 0.708  1.088 0.437 0.425 0.909
-## pipeline 2 (uncorrelated) 0.446 0.476 0.687  1.125 0.407 0.423 0.813
-## pipeline 3 (uncorrelated) 0.380 0.497 0.687  1.113 0.407 0.439 0.814
-## pipeline 4 (uncorrelated) 0.454 0.545 0.721  1.105 0.444 0.464 0.913
-## pipeline 5 (uncorrelated) 0.406 0.441 0.670  1.123 0.387 0.393 0.807
-## pipeline 7 (uncorrelated) 1.438 1.476 1.648  1.988 1.401 1.418 1.716
-## pipeline 8 (uncorrelated) 1.433 1.494 1.645  1.983 1.400 1.425 1.714
+table.estimate[1:7];table.estimate[8:12]
+##                                        amygdala thalamus putamen caudate   ACC hippocampus   OFC
+## pipeline 1 (correlated)  : (Intercept)    2.044    2.021   2.232   1.738 0.862       0.754 0.700
+## pipeline 2 (correlated)  : (Intercept)    2.035    2.030   2.231   1.747 0.864       0.751 0.696
+## pipeline 3 (correlated)  : (Intercept)    2.025    1.961   2.193   1.690 0.839       0.733 0.680
+## pipeline 4 (correlated)  : (Intercept)    2.020    1.978   2.198   1.706 0.843       0.733 0.679
+## pipeline 5 (uncorrelated): (Intercept)    1.851    2.284   2.150   1.569 0.855       0.783 0.676
+## pipeline 6 (uncorrelated): (Intercept)    1.828    2.274   2.134   1.564 0.841       0.821 0.667
+## pipeline 7 (uncorrelated): (Intercept)    2.001    2.008   2.208   1.738 0.865       0.769 0.697
+## pipeline 8 (uncorrelated): (Intercept)    1.853    2.288   2.149   1.560 0.840       0.778 0.659
+##                                          SFC    OC   STG insula   ITG
+## pipeline 1 (correlated)  : (Intercept) 0.454 0.524 0.724  1.110 0.446
+## pipeline 2 (correlated)  : (Intercept) 0.458 0.523 0.725  1.110 0.440
+## pipeline 3 (correlated)  : (Intercept) 0.428 0.516 0.704  1.084 0.441
+## pipeline 4 (correlated)  : (Intercept) 0.435 0.516 0.708  1.088 0.437
+## pipeline 5 (uncorrelated): (Intercept) 0.446 0.476 0.687  1.125 0.407
+## pipeline 6 (uncorrelated): (Intercept) 0.380 0.497 0.687  1.113 0.407
+## pipeline 7 (uncorrelated): (Intercept) 0.454 0.545 0.721  1.105 0.444
+## pipeline 8 (uncorrelated): (Intercept) 0.406 0.441 0.670  1.123 0.387
 
-table.pvalue[1:7];table.pvalue[8:14]
-##                           amygdala thalamus putamen caudate    ACC hippocampus    OFC
-## pipeline 1 (correlated)      0.439    0.048    0.04   0.046  0.001       0.001  0.208
-## pipeline 2 (correlated)      0.592    0.025   0.041   0.023  0.001       0.001  0.109
-## pipeline 3 (correlated)      0.805    0.829    0.28    0.57 <0.001       0.038  0.006
-## pipeline 4 (correlated)      0.892    0.474   0.221   0.286 <0.001       0.032  0.003
-## pipeline 2 (uncorrelated)    0.001   <0.001   0.973   0.008  0.001      <0.001  0.003
-## pipeline 3 (uncorrelated)   <0.001   <0.001   0.997   0.023 <0.001      <0.001  0.001
-## pipeline 4 (uncorrelated)        1    0.232   0.214    0.14  0.008      <0.001  0.171
-## pipeline 5 (uncorrelated)    0.001   <0.001    0.98   0.004 <0.001      <0.001 <0.001
-## pipeline 7 (uncorrelated)   <0.001   <0.001  <0.001  <0.001 <0.001      <0.001 <0.001
-## pipeline 8 (uncorrelated)   <0.001   <0.001  <0.001  <0.001 <0.001      <0.001 <0.001
-##                              SFC     OC    STG insula    ITG     PC     EC
-## pipeline 1 (correlated)    0.022  0.903  0.927  0.042  0.002  0.988 <0.001
-## pipeline 2 (correlated)    0.054  0.824  0.941   0.04 <0.001  0.953 <0.001
-## pipeline 3 (correlated)   <0.001  0.314  0.098  0.001 <0.001  0.005 <0.001
-## pipeline 4 (correlated)   <0.001   0.32  0.168  0.001 <0.001  0.016 <0.001
-## pipeline 2 (uncorrelated)  0.006  0.001  0.006  0.312 <0.001   0.01 <0.001
-## pipeline 3 (uncorrelated)  0.394  0.006  0.012  0.167 <0.001  0.485 <0.001
-## pipeline 4 (uncorrelated)  0.098  0.397  0.806  0.052  0.001  0.446 <0.001
-## pipeline 5 (uncorrelated) <0.001 <0.001 <0.001  0.263 <0.001 <0.001 <0.001
-## pipeline 7 (uncorrelated) <0.001 <0.001 <0.001 <0.001 <0.001 <0.001 <0.001
-## pipeline 8 (uncorrelated) <0.001 <0.001 <0.001 <0.001 <0.001 <0.001 <0.001
+table.pvalue[1:7];table.pvalue[8:12]
+##                                        amygdala thalamus putamen caudate    ACC hippocampus    OFC
+## pipeline 1 (correlated)  : (Intercept)    0.386    0.039   0.031   0.038  0.001       0.001  0.199
+## pipeline 2 (correlated)  : (Intercept)    0.528     0.02   0.031   0.019  0.001       0.001  0.104
+## pipeline 3 (correlated)  : (Intercept)    0.739    0.765   0.231   0.511 <0.001       0.033  0.006
+## pipeline 4 (correlated)  : (Intercept)    0.836    0.412   0.180   0.249 <0.001       0.028  0.003
+## pipeline 5 (uncorrelated): (Intercept)    0.001   <0.001   0.931   0.007 <0.001      <0.001  0.003
+## pipeline 6 (uncorrelated): (Intercept)   <0.001   <0.001   0.986   0.019 <0.001      <0.001  0.001
+## pipeline 7 (uncorrelated): (Intercept)        1    0.196   0.175   0.119  0.006      <0.001  0.162
+## pipeline 8 (uncorrelated): (Intercept)    0.001   <0.001   0.943   0.003 <0.001      <0.001 <0.001
+##                                           SFC     OC    STG insula    ITG
+## pipeline 1 (correlated)  : (Intercept)  0.021  0.894  0.904  0.036  0.002
+## pipeline 2 (correlated)  : (Intercept)  0.052  0.814   0.92  0.034 <0.001
+## pipeline 3 (correlated)  : (Intercept) <0.001  0.306  0.091 <0.001 <0.001
+## pipeline 4 (correlated)  : (Intercept) <0.001  0.313  0.156 <0.001 <0.001
+## pipeline 5 (uncorrelated): (Intercept)  0.006 <0.001  0.006  0.284 <0.001
+## pipeline 6 (uncorrelated): (Intercept)  0.387  0.006  0.011  0.148 <0.001
+## pipeline 7 (uncorrelated): (Intercept)  0.095  0.389  0.777  0.045  0.001
+## pipeline 8 (uncorrelated): (Intercept) <0.001 <0.001 <0.001  0.238 <0.001
 
 
 ## *** at least one pipeline with no effect
@@ -266,18 +259,12 @@ M.prop[,"estimate"] <- paste0(round(100*M.prop[,"estimate"],2),"%")
 ## EC          1.0000000 NA NA    NA    NA
 
 
-
-
 ## *** common effect
-
 rbind("average" = model.tables(ls.mlmmRS[[1]], method = "average"),
       "pool.se" = model.tables(ls.mlmmRS[[1]], method = "pool.se"),
       "pool.gls" = model.tables(ls.mlmmRS[[1]], method = "pool.gls")
 
 ## ** global
-
-
-
 e.mlmmG <- mlmm(value ~ 0+variable, repetition = ~variable|index, data = dtL, by = "pipeline", df = FALSE)
 ## summary(e.mlmmG)
    ##                                 estimate    se df lower upper p.value    
@@ -300,16 +287,26 @@ df.xtable <- data.frame("proportion of pipelines with a difference" = M.prop[,"e
                           "p.value against at least one pipeline with no difference" = M.interH0[,1],
                           "p.value against all pipelines with no difference" = apply(do.call(cbind,lapply(ls.SmlmmRS,"[","p.value")),2,min),
                           check.names = FALSE)
-xtable::xtable(df.xtable[sort(rownames(df.xtable)),])
+xtable::xtable(df.xtable[c("amygdala","thalamus","OFC"),])
 ## * figures
 
 ## ** Data
 gg.data <- ggplot(dtL, aes(x =  pipeline, y = value)) + facet_wrap(~variable) + geom_point()
 
+
+
+
 ## ** Region specific
+confint(ls.mlmmRS[["caudate"]], method = c("none","average","pool.se","pool.gls","pool.gls1"))
+
+www <- attr(confint(ls.mlmmRS[["caudate"]], method = "pool.gls"),"contrast")/max(abs(attr(confint(ls.mlmmRS[["caudate"]], method = "pool.gls"),"contrast")))
+confint(ls.mlmmRS[["caudate"]])[,"estimate"]
+
+
 ls.forestRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
-    
-    iGG <- plot(eMLMM, type = "forest", add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
+
+    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls"), add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
+    ## iGG <- plot(eMLMM, type = "forest", method = c("average","pool.se","pool.gls"), add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
     iGG <- iGG + scale_x_discrete(breaks = rownames(eMLMM$univariate),
                            labels = gsub(": (Intercept)", "", rownames(eMLMM$univariate), fixed = TRUE))
     iGG + scale_y_continuous(breaks = seq(0,4,0.25)) + ggtitle(eMLMM$object$outcome)    
