@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt 10 2022 (12:32) 
+## Last-Updated: nov 30 2022 (17:30) 
 ##           By: Brice Ozenne
-##     Update #: 57
+##     Update #: 62
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -55,11 +55,11 @@ simData <- function(n.obs, sigma.pipe, beta, df = Inf){
 ## * analyzeData
 analyzeData <- function(data, proportion, print.weight = FALSE, df = TRUE){
     require(LMMstar)
-    e.mlmm <- do.call(mlmm, list(Ypip ~ X, repetition = ~1|id, data = data$long, by = "pipeline", effects = "XMale=0", df = df))
-
+    e.mlmm <- do.call(mlmm, list(Ypip ~ X, repetition = ~1|id, data = data$long, by = "pipeline", effects = "XMale=0", df = df, trace = FALSE))
     pool.average <- confint(e.mlmm, method = "average", columns = c("estimate","se","df","lower","upper","p.value"))
     pool.fixse <- confint(e.mlmm, method = "pool.fixse", columns = c("estimate","se","df","lower","upper","p.value"))
     pool.gls <- confint(e.mlmm, method = "pool.gls", columns = c("estimate","se","df","lower","upper","p.value"))
+    pool.gls1 <- confint(e.mlmm, method = "pool.gls1", columns = c("estimate","se","df","lower","upper","p.value"))
     M.iid <- do.call(cbind,lapply(e.mlmm$model, function(iM){iid(iM)[,"XMale",drop=FALSE]}))
     M.rSigmaM1 <- robustInverse(M.iid)
     pool.robust <- data.frame(estimate = sum(M.rSigmaM1 %*% coef(e.mlmm)) / sum(M.rSigmaM1), se = NA, df = NA, lower = NA, upper = NA, p.value = NA)
@@ -71,17 +71,21 @@ analyzeData <- function(data, proportion, print.weight = FALSE, df = TRUE){
         names(weightTable.fixse) <- as.character(round(as.numeric(names(weightTable.fixse)),3))
         weightTable.gls <- table(round(attr(pool.gls,"contrast"),4))
         names(weightTable.gls) <- as.character(round(as.numeric(names(weightTable.gls)),3))
+        weightTable.gls1 <- table(round(attr(pool.gls1,"contrast"),4))
+        names(weightTable.gls1) <- as.character(round(as.numeric(names(weightTable.gls1)),3))
         
         cat("Weights:\n",
             "- average: ", paste(names(weightTable.average), collapse = "/"), " (",paste(weightTable.average, collapse = "/"),")\n",
             "- fixse: ", paste(names(weightTable.fixse), collapse = "/"), " (",paste(weightTable.fixse, collapse = "/"),")\n", 
             "- gls: ", paste(names(weightTable.gls), collapse = "/"), " (",paste(weightTable.gls, collapse = "/"),")\n",
+            "- gls1: ", paste(names(weightTable.gls1), collapse = "/"), " (",paste(weightTable.gls1, collapse = "/"),")\n",
             sep = "")
     }
 
     out <- rbind(average = pool.average,
                  fixse = pool.fixse,
                  gls = pool.gls,
+                 gls1 = pool.gls1,
                  robust = pool.robust)
     if(proportion){
         out <- rbind(out, proportion = proportion(e.mlmm, method = "single-step", n.sample = 0))

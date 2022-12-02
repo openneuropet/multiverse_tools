@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 16 2022 (09:44) 
 ## Version: 
-## Last-Updated: okt 12 2022 (13:52) 
+## Last-Updated: dec  1 2022 (09:23) 
 ##           By: Brice Ozenne
-##     Update #: 43
+##     Update #: 44
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -86,8 +86,8 @@ dt.sim <- rbind(cbind(scenario = "scenario 1", dt.sim1),
 dt.sim[, n.char := factor(n/2, unique(n/2))]
 dt.sim[, beta.char := ifelse(beta==0,paste0("Null hypothesis (\u03B2=",beta,")"),paste0("Alternative hypothesis (\u03B2=",beta,")"))]
 dt.sim[, beta.char := factor(beta.char,levels=unique(beta.char))]
-dt.sim[, type.char := factor(type,levels=c("average","fixse","gls","robust","proportion"),c("pool (average)","pool (se)","pool (gls)","pool (robust gls)","proportion"))]
-dt.sim[, target := factor(type,levels=c("average","fixse","gls","robust","proportion"),c("pool","pool","pool","pool","proportion"))]
+dt.sim[, type.char := factor(type,levels=c("average","fixse","gls","gls1","robust","proportion"),c("pool (average)","pool (se)","pool (gls)", "pool (constrained gls)","pool (robust gls)","proportion"))]
+dt.sim[, target := factor(type,levels=c("average","fixse","gls","gls1","robust","proportion"),c("pool","pool","pool","pool","pool","proportion"))]
 dt.sim[, GS := beta]
 dt.sim[type=="proportion", GS := as.numeric(beta>0)]
 dtS.sim <- dt.sim[,.(rep = .N, average = mean(estimate), sd = sd(estimate), average.se = mean(se), bias = mean(estimate)-GS, power = mean(p.value<=0.05)),

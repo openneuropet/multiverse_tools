@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: nov 23 2022 (18:08) 
+## Last-Updated: dec  2 2022 (17:13) 
 ##           By: Brice Ozenne
-##     Update #: 56
+##     Update #: 58
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -157,7 +157,7 @@ dtR.atlas <- dt.atlas[region %in%  colnames(dtav)]
 ## ** region-specific
 name.region <- rename.region$combined
 
-ls.mlmmRS <- setNames(lapply(name.region, function(iRegion){ ## iRegion <- "OC"
+ls.mlmmRS <- setNames(lapply(name.region, function(iRegion){ ## iRegion <- "amygdala"
 
     print(iRegion)
     null.value <- dtR.atlas[region == iRegion, mean.DASB]
@@ -288,6 +288,11 @@ df.xtable <- data.frame("proportion of pipelines with a difference" = M.prop[,"e
                           "p.value against all pipelines with no difference" = apply(do.call(cbind,lapply(ls.SmlmmRS,"[","p.value")),2,min),
                           check.names = FALSE)
 xtable::xtable(df.xtable[c("amygdala","thalamus","OFC"),])
+
+
+lapply(ls.mlmmRS, function(iM){model.tables([["caudate"]], method = c("none","average","pool.se","pool.gls","pool.gls1"))
+
+
 ## * figures
 
 ## ** Data
@@ -305,7 +310,7 @@ confint(ls.mlmmRS[["caudate"]])[,"estimate"]
 
 ls.forestRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
 
-    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls"), add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
+    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls","pool.gls1"), add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
     ## iGG <- plot(eMLMM, type = "forest", method = c("average","pool.se","pool.gls"), add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
     iGG <- iGG + scale_x_discrete(breaks = rownames(eMLMM$univariate),
                            labels = gsub(": (Intercept)", "", rownames(eMLMM$univariate), fixed = TRUE))

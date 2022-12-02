@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt 11 2022 (13:43) 
+## Last-Updated: nov 30 2022 (17:33) 
 ##           By: Brice Ozenne
-##     Update #: 75
+##     Update #: 76
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -101,12 +101,13 @@ print(table(unname(Sigma2weight)))
 ##   15     5 
 cat("\n")
 ## analyzeData(simData(n.obs = 1000, sigma.pipe = Sigma, beta = 0), proportion = FALSE, print.weight = TRUE)
+## analyzeData(simData(n.obs = 25, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2], print.weight = TRUE)
 
 ## * Simulation
 res <- NULL
-for(iSim in 1:n.sim[1]){ ## 
+for(iSim in 1:n.sim[1]){ ## iSim <- 1
     cat(iSim,": ")
-    for(iN in seqN){ ## iN <- 200
+    for(iN in seqN){ ## iN <- 25
         cat(iN," ")
         try(res <- rbind(res,
                          cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2]))))
