@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: dec  2 2022 (17:13) 
+## Last-Updated: Dec  5 2022 (10:55) 
 ##           By: Brice Ozenne
-##     Update #: 58
+##     Update #: 69
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,6 +20,10 @@ library(ggplot2)
 library(readxl)
 library(LMMstar)
 library(egg) ## ggarrange
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
 
 
 ## * Dictionnary for regions/pipeline
@@ -35,25 +39,22 @@ dicoMatin.region <- matrix(c(6, 13, 1, 8, 3, 10, 2, 9, 39, 73, 5, 12, 27, 61, 24
                            dimnames = list(c("amygdala", "thalamus", "putamen", "caudate", "ACC", "hippocampus", "OFC", "SFC", "OC", "STG", "insula", "ITG", "PC", "EC"), c("left","right")))
 ## Switch around OC and SFC
 
-rename.region <-  as.data.frame(rbind(c(combined = "amygdala",    left = "Left-Amygdala",            right = "Right-Amygdala"),
-                                      c(combined = "thalamus",    left = "Left-Thalamus-Proper",     right = "Right-Thalamus-Proper"),
-                                      c(combined = "putamen",     left = "Left-Putamen",             right = "Right-Putamen"),           
-                                      c(combined = "caudate",     left = "Left-Caudate",             right = "Right-Caudate"),           
-                                      c(combined = "ACC",         left = "rostralanteriorcingulate", right = "rostralanteriorcingulate2"),
-                                      c(combined = "hippocampus", left = "Left-Hippocampus",         right = "Right-Hippocampus"),
-                                      c(combined = "OFC",         left = "medialorbitofrontal",      right = "medialorbitofrontal2"),     
-                                      c(combined = "SFC",         left = "superiorfrontal",          right = "superiorfrontal2"),        
-                                      c(combined = "OC",          left = "lateraloccipital",         right = "lateraloccipital2"),         
-                                      c(combined = "STG",         left = "superiortemporal",         right = "superiortemporal2"),        
-                                      c(combined = "insula",      left = "insula",                   right = "insula2"),                  
-                                      c(combined = "ITG",         left = "inferiortemporal",         right = "inferiortemporal2"),        
-                                      c(combined = "PC",          left = "superiorparietal",         right = "superiorparietal2"),        
-                                      c(combined = "EC",          left = "entorhinal",               right = "entorhinal2")
+rename.region <-  as.data.frame(rbind(c(combined = "amygdala",    left = "Left-Amygdala",            right = "Right-Amygdala", full = "Amygdala"),
+                                      c(combined = "thalamus",    left = "Left-Thalamus-Proper",     right = "Right-Thalamus-Proper", full = "Thalamus"),
+                                      c(combined = "putamen",     left = "Left-Putamen",             right = "Right-Putamen", full = "Putamen"),           
+                                      c(combined = "caudate",     left = "Left-Caudate",             right = "Right-Caudate", full = "Caudate"),           
+                                      c(combined = "ACC",         left = "rostralanteriorcingulate", right = "rostralanteriorcingulate2", full = "Anterior cingulate cortex"),
+                                      c(combined = "hippocampus", left = "Left-Hippocampus",         right = "Right-Hippocampus", full = "Hippocampus"),
+                                      c(combined = "OFC",         left = "medialorbitofrontal",      right = "medialorbitofrontal2", full = "Orbital frontal cortex"),     
+                                      c(combined = "SFC",         left = "superiorfrontal",          right = "superiorfrontal2", full = "Superior frontal cortex"),        
+                                      c(combined = "OC",          left = "lateraloccipital",         right = "lateraloccipital2", full = "Occipital cortex"),         
+                                      c(combined = "STG",         left = "superiortemporal",         right = "superiortemporal2", full = "Superior temporal gyrus"),        
+                                      c(combined = "insula",      left = "insula",                   right = "insula2", full = "Insula"),                  
+                                      c(combined = "ITG",         left = "inferiortemporal",         right = "inferiortemporal2", full = "Inferior temporal gyrus"),        
+                                      c(combined = "PC",          left = "superiorparietal",         right = "superiorparietal2", full = "Parietal cortex"),        
+                                      c(combined = "EC",          left = "entorhinal",               right = "entorhinal2", full = "Entorhinal cortex")
                                       ))
 
-## exclude last two pipelines (LOGAN)
-rename.pip <- cbind(fullname = c(paste0("pipeline ",1:4," (correlated)  "), paste0("pipeline ",3+1:6," (uncorrelated)")),
-                    shortname = c(paste0("pip",1:4,"C"), paste0("pip",3+1:6,"U")))
                     
 
 ## * Import data
@@ -62,7 +63,7 @@ rename.pip <- cbind(fullname = c(paste0("pipeline ",1:4," (correlated)  "), past
 ls.dfraw <- c(lapply(1:4, function(iPip){ ## iPip <- 1
     cbind(pipeline.index = iPip, read_xls(file.path("data","correlatedData_intervention.xls"), sheet = iPip, .name_repair = "minimal"))
 }),
-lapply(5:10, function(iPip){
+lapply(5:9, function(iPip){
     cbind(pipeline.index = iPip, read_xls(file.path("data","uncorrelatedData_intervention.xls"), sheet = iPip-4, .name_repair = "minimal"))
 })
 )
@@ -73,22 +74,8 @@ ls.dfraw[[5]] <- NULL
 
 ## check large values and put NA there
 M.checkLarge <- do.call(rbind,lapply(ls.dfraw, function(iData){apply(abs(iData[,colnames(iData) %in% unlist(rename.region[2:3])]),2,max)}))
-rownames(M.checkLarge) <- c(paste0("uncorrelated",1:4),paste0("correlated",2:6))
+rownames(M.checkLarge) <- c(paste0("uncorrelated",1:4),paste0("correlated",1:4))
 round(M.checkLarge[,colSums(M.checkLarge>1e3)>0])
-##               superiorfrontal superiorfrontal.1
-## uncorrelated1               1                 1
-## uncorrelated2               1                 1
-## uncorrelated3               1                 1
-## uncorrelated4               1                 1
-## correlated2                 1                 1
-## correlated3                 4                 3
-## correlated4                 1                 1
-## correlated5                 1                 1
-## correlated6        1704012000          12415340
-## correlated7                 2                 2
-## correlated8                 2                 2
-
-ls.dfraw[[9]] <- NULL
 
 ## collect data from all pipelines
 dtraw <- as.data.table(do.call(rbind,ls.dfraw))
@@ -105,8 +92,9 @@ for(iN in 1:9){
 all(rename.region$left %in% names(dtraw))
 all(rename.region$right %in% names(dtraw))
 
-dtav <- data.table(index.pipeline = dtraw[[1]],
-                   pipeline = factor(rename.pip[dtraw[[1]],"fullname"], rename.pip[,"fullname"]),
+
+dtav <- data.table(index.pipeline = dtraw$pipeline.index,
+                   pipeline = factor(dtraw$pipeline.index, levels = c(1:4,6:9), paste0("pipeline ", 1:8)),
                    index = dtraw[[2]],
                    0.5*dtraw[,.SD,.SDcols = rename.region$left] + 0.5*dtraw[,.SD,.SDcols = rename.region$right]
                    )
@@ -162,7 +150,7 @@ ls.mlmmRS <- setNames(lapply(name.region, function(iRegion){ ## iRegion <- "amyg
     print(iRegion)
     null.value <- dtR.atlas[region == iRegion, mean.DASB]
     iFormula <- as.formula(paste0(iRegion,"~1"))
-    e.mlmm <- do.call("mlmm", list(iFormula, repetition = ~1|index, data = dtW, by = "pipeline", effects = paste0("(Intercept)=",null.value), trace = FALSE))
+    e.mlmm <- do.call("mlmm", list(iFormula, repetition = ~1|index, data = dtW, by = "pipeline", effects = paste0("(Intercept)=",null.value), trace = FALSE))    
     return(e.mlmm)
 
 }), name.region)
@@ -290,31 +278,49 @@ df.xtable <- data.frame("proportion of pipelines with a difference" = M.prop[,"e
 xtable::xtable(df.xtable[c("amygdala","thalamus","OFC"),])
 
 
-lapply(ls.mlmmRS, function(iM){model.tables([["caudate"]], method = c("none","average","pool.se","pool.gls","pool.gls1"))
+
+df.forest <- do.call(rbind,lapply(1:length(ls.mlmmRS), function(iM){ ## iM <- 1
+    iOut <- confint(ls.mlmmRS[[iM]], method = c("none","average","pool.se","pool.gls","pool.gls1"), columns = c("estimate","se","lower","upper","p.value"))
+    iOut <- cbind(region =  names(ls.mlmmRS)[iM], type = rownames(iOut), iOut)
+    rownames(iOut) <- NULL
+    iOut
+}))
+rownames(df.forest) <- NULL
+
+df.cor <- do.call(rbind,lapply(1:length(ls.mlmmRS), function(iM){
+    cbind(region = names(ls.mlmmRS)[iM], reshape2::melt(cov2cor(ls.mlmmRS[[iM]]$vcov)))
+}))
+
+write.csv(df.cor, file = "results/data-gg-heatmap.pdf")
+write.csv(df.forest, file = "results/data-gg-forest.pdf")
 
 
 ## * figures
+reg
+## 14 regions: amygdala, thalamus, putamen, caudate, anterior cingulate cortex (ACC),
+##             hippocampus, orbital frontal cortex, superior frontal cortex, occipital cortex, superior temporal gyrus,
+##             insula, inferior temporal gyrus, parietal cortex, entorhinal cortex
+
 
 ## ** Data
 gg.data <- ggplot(dtL, aes(x =  pipeline, y = value)) + facet_wrap(~variable) + geom_point()
 
-
-
-
 ## ** Region specific
-confint(ls.mlmmRS[["caudate"]], method = c("none","average","pool.se","pool.gls","pool.gls1"))
-
-www <- attr(confint(ls.mlmmRS[["caudate"]], method = "pool.gls"),"contrast")/max(abs(attr(confint(ls.mlmmRS[["caudate"]], method = "pool.gls"),"contrast")))
-confint(ls.mlmmRS[["caudate"]])[,"estimate"]
-
-
+shape.forest <- c(rep(19,8),c(8,15,17,11))
+color.forest <- c(rep("black",8), gg_color_hue(6)[1:4])
+    
 ls.forestRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
 
-    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls","pool.gls1"), add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
-    ## iGG <- plot(eMLMM, type = "forest", method = c("average","pool.se","pool.gls"), add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5), plot = FALSE)$plot
-    iGG <- iGG + scale_x_discrete(breaks = rownames(eMLMM$univariate),
-                           labels = gsub(": (Intercept)", "", rownames(eMLMM$univariate), fixed = TRUE))
-    iGG + scale_y_continuous(breaks = seq(0,4,0.25)) + ggtitle(eMLMM$object$outcome)    
+    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls","pool.gls1"), size.text = 12,
+                add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5, shape = shape.forest, color = color.forest), plot = FALSE)$plot
+    iYlabel <- ggplot_build(iGG)$layout$panel_params[[1]]$y$get_labels()
+    iGG <- iGG + scale_x_discrete(breaks = iYlabel,
+                                  labels = gsub("average", "pool (average)",
+                                                gsub("pool.se","pool (se)",
+                                                     gsub("pool.gls","pool (gls)",
+                                                          gsub("pool.gls1","pool (constrained gls)", iYlabel, fixed = TRUE), fixed = TRUE), fixed = TRUE), fixed = TRUE))
+    
+    iGG + ggtitle(rename.region$full[rename.region$combined==eMLMM$object$outcome])     ## + scale_y_continuous(breaks = seq(0,4,0.25)) 
 })[sort(name.region)]
 
 ls.forestRScrop <- lapply(names(ls.forestRS), function(iName){
@@ -325,45 +331,42 @@ ls.forestRScrop <- lapply(names(ls.forestRS), function(iName){
                             axis.ticks.y = element_blank(),
                             axis.title.y = element_blank() )
     }
-    if(iName %in% sort(name.region)[1:4]){
-        return(iGG + theme(plot.margin=unit(c(0,0.1,-0.25,0.1),"cm")))
-    }else{
-        return(iGG + theme(plot.margin=unit(c(-0.25,0.1,-0.25,0.1),"cm")))
-    }
+        return(iGG + theme(plot.margin=unit(c(0,0,0,0),"cm")))
 })
 gg.forestRS <- do.call(egg::ggarrange,c(ls.forestRScrop, list(nrow = 3)))
 
-ls.heatRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
-    iPlot <- plot(eMLMM, type = "heat", plot = FALSE)
-    iGG <- iPlot$plot + ggtitle(eMLMM$object$outcome) + xlab("") + ylab("")
-    if(eMLMM$object$outcome %in% c("amygdala","thalamus","putamen","caudate")){
-      iGG <- iGG + theme(plot.margin=unit(c(0,0,-0.25,0),"cm"))
-    }else{
-      iGG <- iGG + theme(plot.margin=unit(c(-0.25,0,-0.25,0),"cm"))
-    }
-    iLabelY <- gsub("pipeline=", "", unique(iPlot$data$col), fixed = TRUE)
-    iGG <- iGG + scale_y_discrete(breaks = unique(iPlot$data$col),
-                                  labels = iLabelY)
-    iLabelX <- 1:length(iLabelY)## gsub("pipeline ", "",gsub(" (uncorrelated)", "U", gsub(" (correlated)  ", "C", iLabelY, fixed = TRUE), fixed = TRUE))
-    iGG <- iGG + scale_x_discrete(breaks = unique(iPlot$data$row),
-                                  labels = iLabelX)
+ls.heatRS.txt <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
+    iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0,1.0001), midpoint = 0.5, value.text = TRUE, value.round = 3, value.size = 4))
+    iGG <- iPlot$plot + xlab("") + ylab("")
+    iGG <- iGG + theme(plot.margin=unit(c(0,0,0,0),"cm"), axis.text.x = element_text(angle = 90, hjust = 1))
     return(iGG)
 })[sort(name.region)]
 
-ls.heatRScrop <- c(lapply(names(ls.heatRS), function(iName){
+ls.heatRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
+    iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0,1.0001), midpoint = 0.5), size.text = 12)
+    iGG <- iPlot$plot + ggtitle(rename.region$full[rename.region$combined==eMLMM$object$outcome]) + xlab("") + ylab("")
+    iGG <- iGG + theme(plot.margin=unit(c(0,0,0,0),"cm"), axis.text.x = element_text(angle = 90, hjust = 1))
+    return(iGG)
+})[sort(name.region)]
+
+ls.heatRScrop <- lapply(names(ls.heatRS), function(iName){
     iGG <- ls.heatRS[[iName]] + guides(fill = "none")
     
-    if(iName %in% sort(name.region)[c(1,6,11)] == FALSE){
-        iGG <- iGG  + theme(axis.text.y = element_blank(),
-                            axis.ticks.y = element_blank(),
-                            axis.title.y = element_blank() )
+    if(iName %in% sort(name.region)[c(1,5,10)] == FALSE){
+        iGG <- iGG + theme(axis.text.y = element_blank(),
+                           axis.ticks.y = element_blank(),
+                           axis.title.y = element_blank() )
+    }    
+    if(iName %in% sort(name.region)[c(10:14)] == FALSE){
+        iGG <- iGG + theme(axis.text.x = element_blank(),
+                           axis.ticks.x = element_blank(),
+                           axis.title.x = element_blank() )
     }    
     return(iGG)
-}),
-list(ggpubr::as_ggplot(ggpubr::get_legend(ls.heatRS[[1]])))
-)
+})
+ls.heatRScrop <- c(ls.heatRScrop[1:4], list(ggpubr::as_ggplot(ggpubr::get_legend(ls.heatRS[[1]]))), ls.heatRScrop[-(1:4)])
 
-gg.heatRS <- do.call(egg::ggarrange, c(ls.heatRScrop, list(nrow = 3)))
+gg.heatRS <- do.call(egg::ggarrange, c(ls.heatRScrop, list(nrow = 3, ncol = 5)))
 
 ## export
 pdf(file.path("figures","application-figure-data.pdf"), width = 12)
@@ -389,6 +392,13 @@ dev.off()
 png(file.path("figures","application-figure-forestRS.png"), width = 1000, heigh = 650)
 gg.forestRS
 dev.off()
+
+for(iR in names(ls.mlmmRS)){ ## iR <- names(ls.mlmmRS)[1]
+    pdf(file.path("figures",paste0("application-figure-",iR,".pdf")), width = 12)
+    XXX <- ggarrange(ls.forestRS[[iR]] + theme(text = element_text(size=15)),ls.heatRS.txt[[iR]], ncol = 2, widths = c(0.4,0.6), newpage = FALSE)
+    dev.off()
+}
+
 
 ## ** Global
 pp.heatG <- plot(e.mlmmG, type  = "heat", plot = FALSE)
