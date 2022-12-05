@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: Dec  5 2022 (10:55) 
+## Last-Updated: Dec  5 2022 (11:18) 
 ##           By: Brice Ozenne
-##     Update #: 69
+##     Update #: 70
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -280,7 +280,7 @@ xtable::xtable(df.xtable[c("amygdala","thalamus","OFC"),])
 
 
 df.forest <- do.call(rbind,lapply(1:length(ls.mlmmRS), function(iM){ ## iM <- 1
-    iOut <- confint(ls.mlmmRS[[iM]], method = c("none","average","pool.se","pool.gls","pool.gls1"), columns = c("estimate","se","lower","upper","p.value"))
+    iOut <- confint(ls.mlmmRS[[iM]], method = c("none","average","pool.se","pool.gls","pool.gls1"), columns = c("estimate","se","lower","upper","null","p.value"))
     iOut <- cbind(region =  names(ls.mlmmRS)[iM], type = rownames(iOut), iOut)
     rownames(iOut) <- NULL
     iOut
@@ -291,8 +291,8 @@ df.cor <- do.call(rbind,lapply(1:length(ls.mlmmRS), function(iM){
     cbind(region = names(ls.mlmmRS)[iM], reshape2::melt(cov2cor(ls.mlmmRS[[iM]]$vcov)))
 }))
 
-write.csv(df.cor, file = "results/data-gg-heatmap.pdf")
-write.csv(df.forest, file = "results/data-gg-forest.pdf")
+write.csv(df.cor, file = "results/data-gg-heatmap.csv")
+write.csv(df.forest, file = "results/data-gg-forest.csv")
 
 
 ## * figures
@@ -311,7 +311,7 @@ color.forest <- c(rep("black",8), gg_color_hue(6)[1:4])
     
 ls.forestRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
 
-    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls","pool.gls1"), size.text = 12,
+    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls","pool.gls1"), size.text = 11,
                 add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5, shape = shape.forest, color = color.forest), plot = FALSE)$plot
     iYlabel <- ggplot_build(iGG)$layout$panel_params[[1]]$y$get_labels()
     iGG <- iGG + scale_x_discrete(breaks = iYlabel,
@@ -326,13 +326,15 @@ ls.forestRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
 ls.forestRScrop <- lapply(names(ls.forestRS), function(iName){
     iGG <- ls.forestRS[[iName]]
     
-    if(iName %in% sort(name.region)[c(1,6,11)] == FALSE){
+    if(iName %in% sort(name.region)[c(1,5,10)] == FALSE){
         iGG <- iGG  + theme(axis.text.y = element_blank(),
                             axis.ticks.y = element_blank(),
                             axis.title.y = element_blank() )
     }
-        return(iGG + theme(plot.margin=unit(c(0,0,0,0),"cm")))
+    return(iGG + theme(plot.margin=unit(c(0.2,0,-0.4,0),"cm")))
 })
+ls.forestRScrop <- c(ls.forestRScrop[1:4], list(ggplot()), ls.forestRScrop[-(1:4)])
+
 gg.forestRS <- do.call(egg::ggarrange,c(ls.forestRScrop, list(nrow = 3)))
 
 ls.heatRS.txt <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
