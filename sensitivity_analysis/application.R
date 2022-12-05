@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: Dec  5 2022 (11:18) 
+## Last-Updated: Dec  5 2022 (13:08) 
 ##           By: Brice Ozenne
-##     Update #: 70
+##     Update #: 73
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -143,6 +143,7 @@ dtR.atlas <- dt.atlas[region %in%  colnames(dtav)]
 ## * Analysis
 
 ## ** region-specific
+## *** model
 name.region <- rename.region$combined
 
 ls.mlmmRS <- setNames(lapply(name.region, function(iRegion){ ## iRegion <- "amygdala"
@@ -155,56 +156,37 @@ ls.mlmmRS <- setNames(lapply(name.region, function(iRegion){ ## iRegion <- "amyg
 
 }), name.region)
 
-## *** any pipeline with an effect (slow!)
-ls.SmlmmRS <- lapply(ls.mlmmRS, FUN = function(iLMM){confint(iLMM, method = "single-step", columns = c("estimate","se","df","null","lower","upper","p.value"))})
+## *** extract estimates
+ls.SmlmmRS <- lapply(ls.mlmmRS, FUN = function(iLMM){ ## iLMM <- ls.mlmmRS[[1]]
+    iOut <- confint(iLMM, method = c("none","average","pool.se","pool.gls","pool.gls1"), columns = c("estimate","se","df","null","lower","upper","p.value"))
+    iOut2 <- confint(iLMM, method = "single-step", columns = c("estimate","se","df","null","lower","upper","p.value"))
+    iOut2 <- confint(iLMM, method = "single-step", columns = c("estimate","se","df","null","lower","upper","p.value"))
+    iOut$lower.adj <- c(iOut2$lower,rep(NA,4))
+    iOut$upper.adj <- c(iOut2$upper,rep(NA,4))
+    iOut$p.value.adj <- c(iOut2$p.value,rep(NA,4))
+    iOut <- rbind(iOut,proportion = NA)
+    iOut["proportion",c("estimate","se","df","lower","upper","p.value")] <- proportion(iLMM, method = "single-step", n.sample = 0)
+    return(iOut)
+})
+ls.SmlmmRS <- ls.SmlmmRS[sort(name.region)]
 
-table.estimate <- round(do.call(cbind,lapply(ls.SmlmmRS,"[",1)),3)
-table.pvalue <- round(do.call(cbind,lapply(ls.SmlmmRS,"[","p.value")),3)
-table.pvalue[table.pvalue==0] <- "<0.001"
+vec.H0a <- unlist(lapply(ls.SmlmmRS, function(iTable){min(iTable$p.value.adj[1:8])}))
+vec.H0b <- unlist(lapply(ls.SmlmmRS, function(iTable){max(iTable$p.value[1:8])}))
 
-colnames(table.estimate) <- names(ls.SmlmmRS)
-colnames(table.pvalue) <- names(ls.SmlmmRS)
+print(xtable::xtable(data.frame(region = names(vec.H0a),
+                          "no effect (all pipelines)" = vec.H0a,
+                          "no effect (at least on pipeline)" = vec.H0b,
+                          check.names = FALSE),digits=5), include.rownames = FALSE)
 
-table.estimate[1:7];table.estimate[8:12]
-##                                        amygdala thalamus putamen caudate   ACC hippocampus   OFC
-## pipeline 1 (correlated)  : (Intercept)    2.044    2.021   2.232   1.738 0.862       0.754 0.700
-## pipeline 2 (correlated)  : (Intercept)    2.035    2.030   2.231   1.747 0.864       0.751 0.696
-## pipeline 3 (correlated)  : (Intercept)    2.025    1.961   2.193   1.690 0.839       0.733 0.680
-## pipeline 4 (correlated)  : (Intercept)    2.020    1.978   2.198   1.706 0.843       0.733 0.679
-## pipeline 5 (uncorrelated): (Intercept)    1.851    2.284   2.150   1.569 0.855       0.783 0.676
-## pipeline 6 (uncorrelated): (Intercept)    1.828    2.274   2.134   1.564 0.841       0.821 0.667
-## pipeline 7 (uncorrelated): (Intercept)    2.001    2.008   2.208   1.738 0.865       0.769 0.697
-## pipeline 8 (uncorrelated): (Intercept)    1.853    2.288   2.149   1.560 0.840       0.778 0.659
-##                                          SFC    OC   STG insula   ITG
-## pipeline 1 (correlated)  : (Intercept) 0.454 0.524 0.724  1.110 0.446
-## pipeline 2 (correlated)  : (Intercept) 0.458 0.523 0.725  1.110 0.440
-## pipeline 3 (correlated)  : (Intercept) 0.428 0.516 0.704  1.084 0.441
-## pipeline 4 (correlated)  : (Intercept) 0.435 0.516 0.708  1.088 0.437
-## pipeline 5 (uncorrelated): (Intercept) 0.446 0.476 0.687  1.125 0.407
-## pipeline 6 (uncorrelated): (Intercept) 0.380 0.497 0.687  1.113 0.407
-## pipeline 7 (uncorrelated): (Intercept) 0.454 0.545 0.721  1.105 0.444
-## pipeline 8 (uncorrelated): (Intercept) 0.406 0.441 0.670  1.123 0.387
-
-table.pvalue[1:7];table.pvalue[8:12]
-##                                        amygdala thalamus putamen caudate    ACC hippocampus    OFC
-## pipeline 1 (correlated)  : (Intercept)    0.386    0.039   0.031   0.038  0.001       0.001  0.199
-## pipeline 2 (correlated)  : (Intercept)    0.528     0.02   0.031   0.019  0.001       0.001  0.104
-## pipeline 3 (correlated)  : (Intercept)    0.739    0.765   0.231   0.511 <0.001       0.033  0.006
-## pipeline 4 (correlated)  : (Intercept)    0.836    0.412   0.180   0.249 <0.001       0.028  0.003
-## pipeline 5 (uncorrelated): (Intercept)    0.001   <0.001   0.931   0.007 <0.001      <0.001  0.003
-## pipeline 6 (uncorrelated): (Intercept)   <0.001   <0.001   0.986   0.019 <0.001      <0.001  0.001
-## pipeline 7 (uncorrelated): (Intercept)        1    0.196   0.175   0.119  0.006      <0.001  0.162
-## pipeline 8 (uncorrelated): (Intercept)    0.001   <0.001   0.943   0.003 <0.001      <0.001 <0.001
-##                                           SFC     OC    STG insula    ITG
-## pipeline 1 (correlated)  : (Intercept)  0.021  0.894  0.904  0.036  0.002
-## pipeline 2 (correlated)  : (Intercept)  0.052  0.814   0.92  0.034 <0.001
-## pipeline 3 (correlated)  : (Intercept) <0.001  0.306  0.091 <0.001 <0.001
-## pipeline 4 (correlated)  : (Intercept) <0.001  0.313  0.156 <0.001 <0.001
-## pipeline 5 (uncorrelated): (Intercept)  0.006 <0.001  0.006  0.284 <0.001
-## pipeline 6 (uncorrelated): (Intercept)  0.387  0.006  0.011  0.148 <0.001
-## pipeline 7 (uncorrelated): (Intercept)  0.095  0.389  0.777  0.045  0.001
-## pipeline 8 (uncorrelated): (Intercept) <0.001 <0.001 <0.001  0.238 <0.001
-
+xxx <- lapply(1:length(ls.SmlmmRS), function(iR){ ## iR <- 2
+    iTable <- cbind(region = c(names(ls.SmlmmRS)[iR], rep("", NROW(ls.SmlmmRS[[iR]])-1)),
+                    pipeline = gsub("pipeline ","",rownames(ls.SmlmmRS[[iR]])),
+                    ls.SmlmmRS[[iR]])
+    iTable$df <- NULL
+    rownames(iTable) <- NULL
+    print(xtable::xtable(iTable, digits = 4), include.rownames = FALSE)
+    return(NULL)
+})
 
 ## *** at least one pipeline with no effect
 M.interH0 <- do.call(rbind,lapply(ls.mlmmRS, FUN = function(iLMM){
@@ -227,24 +209,18 @@ M.interH0 <- do.call(rbind,lapply(ls.mlmmRS, FUN = function(iLMM){
 ## EC          0.000000000
 
 ## *** proportion of pipelines with an effect
-ls.prop <- lapply(ls.mlmmRS, proportion, method = "single-step", n.sample = 0)
-M.prop <- do.call(rbind,ls.prop)[,1:5]
+ls.prop <- pblapply(ls.mlmmRS, proportion, method = "single-step", n.sample = 1000, cl = 14)
+M.prop <- do.call(rbind,ls.prop)
 M.prop[,"estimate"] <- paste0(round(100*M.prop[,"estimate"],2),"%")
-##              estimate se df lower upper
-## amygdala    0.5121319 NA NA    NA    NA
-## thalamus    0.6493860 NA NA    NA    NA
-## putamen     0.3790945 NA NA    NA    NA
-## caudate     0.5958235 NA NA    NA    NA
-## ACC         0.9543778 NA NA    NA    NA
-## hippocampus 0.8938824 NA NA    NA    NA
-## OFC         0.7262501 NA NA    NA    NA
-## SFC         0.7421621 NA NA    NA    NA
-## OC          0.5313145 NA NA    NA    NA
-## STG         0.5233707 NA NA    NA    NA
-## insula      0.6107282 NA NA    NA    NA
-## ITG         0.9763883 NA NA    NA    NA
-## PC          0.5522278 NA NA    NA    NA
-## EC          1.0000000 NA NA    NA    NA
+
+xtable::xtable(M.prop[sort(name.region),c("estimate","se","lower","upper")])
+
+## data.frame("estimate" = c("39.92%", "57.74%", "25.19%", "51.95%", "94.64%", "87.53%", "66.5%", "68.1%", "41.69%", "41.28%", "53.07%", "97.17%", "44.54%", "100%"), 
+##            "se" = c(0.07632587, 0.14509296, 0.16782991, 0.08215652, 0.13956978, 0.12781987, 0.22530403, 0.15371626, 0.12063506, 0.19912291, 0.24159677, 0.09468787, 0.09264666, 0.00000000), 
+##            "df" = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA), 
+##            "lower" = c(0.2902909, 0.4181844, 0.1102484, 0.4085761, 0.4742420, 0.5040433, 0.1725208, 0.4056019, 0.3095953, 0.1264990, 0.1254556, 0.6249307, 0.3116885, 1.0000000), 
+##            "upper" = c(0.6222554, 0.9155293, 0.7077834, 0.6968168, 0.9997773, 0.9954660, 0.9845529, 0.9807949, 0.7886449, 0.8609234, 0.9642236, 0.9999779, 0.6804147, 1.0000000), 
+##            "p.value" = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA))
 
 
 ## *** common effect
@@ -296,7 +272,6 @@ write.csv(df.forest, file = "results/data-gg-forest.csv")
 
 
 ## * figures
-reg
 ## 14 regions: amygdala, thalamus, putamen, caudate, anterior cingulate cortex (ACC),
 ##             hippocampus, orbital frontal cortex, superior frontal cortex, occipital cortex, superior temporal gyrus,
 ##             insula, inferior temporal gyrus, parietal cortex, entorhinal cortex

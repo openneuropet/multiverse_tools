@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2022 (11:48) 
 ## Version: 
-## Last-Updated: dec  1 2022 (10:36) 
+## Last-Updated: Dec  5 2022 (13:12) 
 ##           By: Brice Ozenne
-##     Update #: 25
+##     Update #: 29
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,7 @@ gg_color_hue <- function(n) {
 }
 
 ## * Data
-dtS.sim <- readRDS(file.path("Results","simulation-summary-scenario.rds"))
+dtS.sim <- readRDS(file.path("results","simulation-summary-scenario.rds"))
 
 ## * create table and figure
 ## ** bias
@@ -62,6 +62,9 @@ gg.bias <- gg.bias + theme_minimal() + theme(legend.position="bottom",
 dtS.sim[,sd.upper := exp(log(sd) + qnorm(0.975)/sqrt(2*(rep-1)))]
 dtS.sim[,sd.lower := exp(log(sd) + qnorm(0.025)/sqrt(2*(rep-1)))]
 
+range(dtS.sim[beta==0, sd]-dtS.sim[beta==0.5, sd])
+range((dtS.sim[beta==0, sd]-dtS.sim[beta==0.5, sd])/abs(dtS.sim[beta==0, sd]))
+
 gg.se <- ggplot(dtS.sim, aes(x = n.char, y = sd, linetype = target, group = type.char)) 
 gg.se <- gg.se + facet_grid(beta.char~scenario) 
 gg.se <- gg.se + geom_ribbon(aes(ymin = sd.lower, ymax = sd.upper), alpha = 0.25)
@@ -95,6 +98,7 @@ gg.seLog <- gg.seLog + scale_y_continuous(breaks = c(1.5,1,0.5,0.1))
 
 gg.se4 <- gg.se %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE,]
 gg.seLog4 <- gg.seLog %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE,]
+gg.seLog4.H0 <- gg.seLog %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE & beta == 0,]
 
 ## ** cali se
 gg.cali <- ggplot(dtS.sim[!is.na(dtS.sim$average.se)], aes(x = sd, y = average.se, linetype = target, color = type.char, group = type.char)) 
@@ -116,7 +120,7 @@ dtS.sim[,power.lower := power + qnorm(0.025) * sqrt(power*(1-power))/sqrt(rep)]
 
 gg.power <- ggplot(dtS.sim[!is.na(dtS.sim$power)], aes(x = n.char, y = power, linetype = target, group = type.char)) 
 gg.power <- gg.power + facet_grid(beta.char~scenario) 
-gg.power <- gg.power + geom_ribbon(aes(ymin = power.lower, ymax = power.upper), alpha = 0.25)
+gg.power <- gg.power + geom_ribbon(aes(ymin = power.lower, ymax = power.upper), alpha = 0.2)
 gg.power <- gg.power + geom_hline(yintercept = 0.05, color = "brown")
 gg.power <- gg.power + geom_point(size = 2, aes(color = type.char)) + geom_line(size = 1, aes(color = type.char))
 gg.power <- gg.power + labs(x = "Sample size (per group)", y = "Rejection rate", color = "") + guides(linetype = "none")
@@ -129,6 +133,10 @@ gg.power <- gg.power + theme_minimal() + theme(legend.position="bottom",
                                                axis.ticks.length=unit(.25, "cm"),
                                                legend.key.size = unit(3,"line"))
 ## gg.power
+
+gg.power4.H0 <- gg.power %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE & beta == 0,]
+gg.power4.H0 <- gg.power4.H0 + coord_trans(y="log10", ylim = c(0.025,0.8))  + scale_y_continuous(breaks = c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),labels = scales::percent)
+gg.power4.H0 <- gg.power4.H0 + ylab("Rejection rate (log scale)")
 
 ## * Export
 
@@ -194,6 +202,15 @@ pdf(file.path("figures","simulation-fig-power.pdf"), width = 10)
 gg.power
 dev.off()
 
+## standard error and power
+png(file.path("figures","simulation-fig-sdpower4.png"))
+egg::ggarrange(gg.seLog4.H0 + guides(color = "none", shape = "none")+labs(x = ""),gg.power4.H0, nrow = 2)
+dev.off()
+
+cairo_pdf(file.path("figures","simulation-fig-sdpower4.pdf"), width = 10, height = 7)
+egg::ggarrange(gg.seLog4.H0 + guides(color = "none", shape = "none")+labs(x = "")+theme(plot.margin = margin(0,0,-0.5,0, "cm")),
+               gg.power4.H0 + theme(plot.margin = margin(0,0,-0.5,0.25, "cm")) , nrow = 2,newpage = FALSE)
+dev.off()
 
 
 
