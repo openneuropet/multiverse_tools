@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2022 (11:48) 
 ## Version: 
-## Last-Updated: Dec  5 2022 (13:12) 
+## Last-Updated: dec  9 2022 (18:35) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 34
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,7 @@ gg_color_hue <- function(n) {
 }
 
 ## * Data
-dtS.sim <- readRDS(file.path("results","simulation-summary-scenario.rds"))
+dtS.sim <- readRDS(file.path("Results","simulation-summary-scenario.rds"))
 
 ## * create table and figure
 ## ** bias
@@ -41,7 +41,7 @@ gg.bias <- gg.bias + geom_ribbon(aes(ymin = average.lower, ymax = average.upper)
 gg.bias <- gg.bias + geom_hline(aes(yintercept = beta), color = "brown") + facet_grid(beta.char~scenario) 
 gg.bias <- gg.bias + geom_point(size = 2, aes(shape = type.char, color = type.char)) + geom_line(size = 1, aes(color = type.char))
 gg.bias <- gg.bias + labs(x = "Sample size (per group)", y = "Estimate", shape = "", color = "") + guides(linetype = "none")
-gg.bias <- gg.bias + scale_color_manual(values = gg_color_hue(6))
+gg.bias <- gg.bias + scale_color_manual(values = gg_color_hue(7))
 gg.bias <- gg.bias + theme_minimal() + theme(legend.position="bottom",
                                              text = element_text(size=15), 
                                              axis.line = element_line(size = 1.25),
@@ -68,9 +68,9 @@ range((dtS.sim[beta==0, sd]-dtS.sim[beta==0.5, sd])/abs(dtS.sim[beta==0, sd]))
 gg.se <- ggplot(dtS.sim, aes(x = n.char, y = sd, linetype = target, group = type.char)) 
 gg.se <- gg.se + facet_grid(beta.char~scenario) 
 gg.se <- gg.se + geom_ribbon(aes(ymin = sd.lower, ymax = sd.upper), alpha = 0.25)
-gg.se <- gg.se + geom_point(size = 2, aes(shape = type.char, color = type.char)) + geom_line(size = 1, aes(color = type.char)) 
+gg.se <- gg.se + geom_point(size = 2.5, aes(shape = type.char, color = type.char)) + geom_line(size = 1.2, aes(color = type.char)) 
 gg.se <- gg.se + labs(x = "Sample size (per group)", y = "Standard deviation", shape = "", color = "") + guides(linetype = "none")
-gg.se <- gg.se + scale_color_manual(values = gg_color_hue(6))
+gg.se <- gg.se + scale_color_manual(values = gg_color_hue(7))
 gg.se <- gg.se + theme_minimal() + theme(legend.position="bottom",
                                          text = element_text(size=15), 
                                          axis.line = element_line(size = 1.25),
@@ -93,19 +93,21 @@ gg.se <- gg.se + theme_minimal() + theme(legend.position="bottom",
 ## sd(X)/sqrt(2*(NROW(X)-1))
 ## 1/sqrt(2*(NROW(X)-1))
 
-gg.seLog <- gg.se + coord_trans(y="log10", ylim = c(0.05,1.5)) + ylab("Standard deviation (log scale)")
+gg.seLog <- gg.se + coord_trans(y="log10", ylim = c(0.025,1.5)) + ylab("Standard deviation (log scale)")
 gg.seLog <- gg.seLog + scale_y_continuous(breaks = c(1.5,1,0.5,0.1))
 
-gg.se4 <- gg.se %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE,]
-gg.seLog4 <- gg.seLog %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE,]
-gg.seLog4.H0 <- gg.seLog %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE & beta == 0,]
+gg.se4 <- gg.se %+% dtS.sim[type.char %in% c("proportion (np)", "proportion (p)","pool (robust gls)") == FALSE,]
+gg.seLog4 <- gg.se %+% dtS.sim[type.char %in% c("proportion (np)", "proportion (p)","pool (robust gls)") == FALSE,]
+gg.seLog4 <- gg.seLog4 + coord_trans(y="log10", ylim = c(0.05,1.5)) + ylab("Standard deviation (log scale)")
+gg.seLog4.H0 <- gg.seLog %+% dtS.sim[type.char %in% c("proportion (np)", "proportion (p)","pool (robust gls)") == FALSE & beta == 0,]
+gg.seLog4.H0 <- gg.seLog4.H0 + scale_color_manual(values = gg_color_hue(6)) + scale_shape_manual(values = c(15,17,19,8))
 
 ## ** cali se
 gg.cali <- ggplot(dtS.sim[!is.na(dtS.sim$average.se)], aes(x = sd, y = average.se, linetype = target, color = type.char, group = type.char)) 
 gg.cali <- gg.cali + geom_abline(intercept = 0, slope = 1, color = "brown")
 gg.cali <- gg.cali + geom_point(size = 2) + geom_line(size = 1) + facet_grid(beta.char~scenario) 
 gg.cali <- gg.cali + labs(x = "Empirical standard deviation", y = "Average modeled standard deviation", color = "") + guides(linetype = "none")
-gg.cali <- gg.cali + scale_color_manual(values = gg_color_hue(6)[1:4])
+gg.cali <- gg.cali + scale_color_manual(values = gg_color_hue(7)[1:4])
 gg.cali <- gg.cali + theme_minimal() + theme(legend.position="bottom",
                                              text = element_text(size=15), 
                                              axis.line = element_line(size = 1.25),
@@ -122,9 +124,9 @@ gg.power <- ggplot(dtS.sim[!is.na(dtS.sim$power)], aes(x = n.char, y = power, li
 gg.power <- gg.power + facet_grid(beta.char~scenario) 
 gg.power <- gg.power + geom_ribbon(aes(ymin = power.lower, ymax = power.upper), alpha = 0.2)
 gg.power <- gg.power + geom_hline(yintercept = 0.05, color = "brown")
-gg.power <- gg.power + geom_point(size = 2, aes(color = type.char)) + geom_line(size = 1, aes(color = type.char))
-gg.power <- gg.power + labs(x = "Sample size (per group)", y = "Rejection rate", color = "") + guides(linetype = "none")
-gg.power <- gg.power + scale_color_manual(values = gg_color_hue(6)[1:4])
+gg.power <- gg.power + geom_point(size = 2.5, aes(shape = type.char, color = type.char)) + geom_line(size = 1.2, aes(color = type.char))
+gg.power <- gg.power + labs(x = "Sample size (per group)", y = "Rejection rate", color = "", shape = "") + guides(linetype = "none")
+gg.power <- gg.power + scale_color_manual(values = gg_color_hue(7)[1:4])
 gg.power <- gg.power + scale_y_continuous(labels = scales::percent)
 gg.power <- gg.power + theme_minimal() + theme(legend.position="bottom",
                                                text = element_text(size=15), 
@@ -134,9 +136,10 @@ gg.power <- gg.power + theme_minimal() + theme(legend.position="bottom",
                                                legend.key.size = unit(3,"line"))
 ## gg.power
 
-gg.power4.H0 <- gg.power %+% dtS.sim[type.char %in% c("proportion","pool (robust gls)") == FALSE & beta == 0,]
-gg.power4.H0 <- gg.power4.H0 + coord_trans(y="log10", ylim = c(0.025,0.8))  + scale_y_continuous(breaks = c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),labels = scales::percent)
+gg.power4.H0 <- gg.power %+% dtS.sim[type.char %in% c("proportion (p)", "proportion (np)","pool (robust gls)") == FALSE & beta == 0,]
+gg.power4.H0 <- gg.power4.H0 + coord_trans(y="log10", ylim = c(0.025,0.8)) + scale_y_continuous(breaks = c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),labels = scales::percent)
 gg.power4.H0 <- gg.power4.H0 + ylab("Rejection rate (log scale)")
+gg.power4.H0 <- gg.power4.H0 + scale_color_manual(values = gg_color_hue(6)) + scale_shape_manual(values = c(15,17,19,8))
 
 ## * Export
 

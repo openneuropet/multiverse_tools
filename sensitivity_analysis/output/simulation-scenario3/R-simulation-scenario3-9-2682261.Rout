@@ -63,7 +63,7 @@ Type 'q()' to quit R.
 > set.seed(iSeed)
 > 
 > cat("iteration ",iter_sim," over ",n.iter_sim," (seed ",iSeed,")\n",sep="")
-iteration 7 over 100 (seed 32618)
+iteration 9 over 100 (seed 8229)
 > 
 > ## * Prepare export
 > path <- "."
@@ -310,4 +310,4 @@ loaded via a namespace (and not attached):
 > 
 > proc.time()
     user   system  elapsed 
-2592.035    2.498 2631.821 
+3017.554    3.180 3054.117 

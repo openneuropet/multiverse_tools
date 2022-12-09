@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: Dec  5 2022 (13:08) 
+## Last-Updated: dec  9 2022 (18:36) 
 ##           By: Brice Ozenne
-##     Update #: 73
+##     Update #: 77
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -281,7 +281,7 @@ write.csv(df.forest, file = "results/data-gg-forest.csv")
 gg.data <- ggplot(dtL, aes(x =  pipeline, y = value)) + facet_wrap(~variable) + geom_point()
 
 ## ** Region specific
-shape.forest <- c(rep(19,8),c(8,15,17,11))
+shape.forest <- c(rep(19,8),c(15,17,19,8))
 color.forest <- c(rep("black",8), gg_color_hue(6)[1:4])
     
 ls.forestRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
@@ -313,14 +313,14 @@ ls.forestRScrop <- c(ls.forestRScrop[1:4], list(ggplot()), ls.forestRScrop[-(1:4
 gg.forestRS <- do.call(egg::ggarrange,c(ls.forestRScrop, list(nrow = 3)))
 
 ls.heatRS.txt <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
-    iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0,1.0001), midpoint = 0.5, value.text = TRUE, value.round = 3, value.size = 4))
+    iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0.5,1.0001), midpoint = 0.75, mid = "yellow", value.text = TRUE, value.round = 3, value.size = 4))
     iGG <- iPlot$plot + xlab("") + ylab("")
     iGG <- iGG + theme(plot.margin=unit(c(0,0,0,0),"cm"), axis.text.x = element_text(angle = 90, hjust = 1))
     return(iGG)
 })[sort(name.region)]
 
 ls.heatRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
-    iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0,1.0001), midpoint = 0.5), size.text = 12)
+    iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0.1,1.0001), midpoint = 0.55, mid = "yellow"), size.text = 12)
     iGG <- iPlot$plot + ggtitle(rename.region$full[rename.region$combined==eMLMM$object$outcome]) + xlab("") + ylab("")
     iGG <- iGG + theme(plot.margin=unit(c(0,0,0,0),"cm"), axis.text.x = element_text(angle = 90, hjust = 1))
     return(iGG)
@@ -371,8 +371,10 @@ gg.forestRS
 dev.off()
 
 for(iR in names(ls.mlmmRS)){ ## iR <- names(ls.mlmmRS)[1]
+    
     pdf(file.path("figures",paste0("application-figure-",iR,".pdf")), width = 12)
-    XXX <- ggarrange(ls.forestRS[[iR]] + theme(text = element_text(size=15)),ls.heatRS.txt[[iR]], ncol = 2, widths = c(0.4,0.6), newpage = FALSE)
+    XXX <- egg::ggarrange(ls.forestRS[[iR]] + ggtitle(NULL) + theme(text = element_text(size=15)),ls.heatRS.txt[[iR]], ncol = 2, widths = c(0.4,0.6),
+                          newpage = FALSE, draw = TRUE, top = ggpubr::text_grob(stringr::str_to_title(iR), color = "black", face = "bold", size = 20))
     dev.off()
 }
 

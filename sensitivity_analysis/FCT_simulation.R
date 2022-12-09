@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: nov 30 2022 (17:30) 
+## Last-Updated: dec  8 2022 (12:05) 
 ##           By: Brice Ozenne
-##     Update #: 62
+##     Update #: 64
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -88,7 +88,9 @@ analyzeData <- function(data, proportion, print.weight = FALSE, df = TRUE){
                  gls1 = pool.gls1,
                  robust = pool.robust)
     if(proportion){
-        out <- rbind(out, proportion = proportion(e.mlmm, method = "single-step", n.sample = 0))
+        out <- rbind(out, proportion.np = c(estimate = mean(model.tables(e.mlmm, method = "single-step")$p.value<=0.05),
+                                            se = NA, df = NA, lower = NA, upper = NA, p.value = NA))
+        out <- rbind(out, proportion.p = proportion(e.mlmm, method = "single-step", n.sample = 0))
     }
     
     return(cbind(beta = data$beta, n = NROW(data$wide), type = rownames(out), out))

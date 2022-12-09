@@ -22,9 +22,9 @@ Type 'q()' to quit R.
 > ## Author: Brice Ozenne
 > ## Created: sep 15 2022 (16:48) 
 > ## Version: 
-> ## Last-Updated: okt 11 2022 (13:56) 
+> ## Last-Updated: nov 30 2022 (17:33) 
 > ##           By: Brice Ozenne
-> ##     Update #: 66
+> ##     Update #: 67
 > ##----------------------------------------------------------------------
 > ## 
 > ### Commentary: 
@@ -63,7 +63,7 @@ Type 'q()' to quit R.
 > set.seed(iSeed)
 > 
 > cat("iteration ",iter_sim," over ",n.iter_sim," (seed ",iSeed,")\n",sep="")
-iteration 8 over 100 (seed 13903)
+iteration 1 over 100 (seed 24388)
 > 
 > ## * Prepare export
 > path <- "."
@@ -308,4 +308,4 @@ loaded via a namespace (and not attached):
 > 
 > proc.time()
     user   system  elapsed 
-1373.748    0.588 1393.154 
+1423.077    0.539 1441.509 

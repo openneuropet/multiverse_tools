@@ -15,7 +15,7 @@ R CMD BATCH --vanilla BATCH_simulation-scenario3.R output/simulation-scenario3/R
 ## clean results      ## rm -r ./Results/simulation-scenario3/*
 ## submission command ## sbatch SUBM_simulation-scenario3.slurm
 
-## submission output  ## Submitted batch job 2680262 (time using C-c t: onsdag 22-11-30 at 17:32) 
+## submission output  ## Submitted batch job 2682252 (time using C-c t: torsdag 22-12-08 at 12:10) 
 
 ## init               ## module module load gcc/11.2.0 R/4.1.2
                       ## cat .bash_profile (in the root directory on the server to visualize the current configuration)

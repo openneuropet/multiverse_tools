@@ -22,9 +22,9 @@ Type 'q()' to quit R.
 > ## Author: Brice Ozenne
 > ## Created: sep 15 2022 (16:48) 
 > ## Version: 
-> ## Last-Updated: okt 11 2022 (13:43) 
+> ## Last-Updated: nov 30 2022 (17:33) 
 > ##           By: Brice Ozenne
-> ##     Update #: 75
+> ##     Update #: 76
 > ##----------------------------------------------------------------------
 > ## 
 > ### Commentary: 
@@ -63,7 +63,7 @@ Type 'q()' to quit R.
 > set.seed(iSeed)
 > 
 > cat("iteration ",iter_sim," over ",n.iter_sim," (seed ",iSeed,")\n",sep="")
-iteration 6 over 100 (seed 25173)
+iteration 7 over 100 (seed 32618)
 > 
 > ## * Prepare export
 > path <- "."
@@ -143,12 +143,13 @@ relativeVar
 > cat("\n")
 
 > ## analyzeData(simData(n.obs = 1000, sigma.pipe = Sigma, beta = 0), proportion = FALSE, print.weight = TRUE)
+> ## analyzeData(simData(n.obs = 25, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2], print.weight = TRUE)
 > 
 > ## * Simulation
 > res <- NULL
-> for(iSim in 1:n.sim[1]){ ## 
+> for(iSim in 1:n.sim[1]){ ## iSim <- 1
 +     cat(iSim,": ")
-+     for(iN in seqN){ ## iN <- 200
++     for(iN in seqN){ ## iN <- 25
 +         cat(iN," ")
 +         try(res <- rbind(res,
 +                          cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2]))))
@@ -160,10 +161,7 @@ relativeVar
 + }
 1 : 10  25  50  100  200  500  
 2 : 10  25  50  100  200  500  
-3 : 10  Error in get_quant_loclin(pfct, p, interval = interval, link = link, ptol = ptol,  : 
-  Covariance matrix not positive semidefinite
-In addition: There were 50 or more warnings (use warnings() to see the first 50)
-25  50  100  200  500  
+3 : 10  25  50  100  200  500  
 4 : 10  25  50  100  200  500  
 5 : 10  25  50  100  200  500  
 6 : 10  25  50  100  200  500  
@@ -312,6 +310,7 @@ loaded via a namespace (and not attached):
 > 
 > ##----------------------------------------------------------------------
 > ### BATCH_simulation-scenario1.R ends here
-> )
-Error: unexpected ')' in ")"
-Execution halted
+> 
+> proc.time()
+    user   system  elapsed 
+4513.647    1.038 4570.689 

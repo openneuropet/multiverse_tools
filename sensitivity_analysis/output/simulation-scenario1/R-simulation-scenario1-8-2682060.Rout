@@ -17,14 +17,14 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-> ### BATCH_simulation-scenario3.R --- 
+> ### BATCH_simulation-scenario1.R --- 
 > ##----------------------------------------------------------------------
 > ## Author: Brice Ozenne
 > ## Created: sep 15 2022 (16:48) 
 > ## Version: 
-> ## Last-Updated: okt 11 2022 (13:44) 
+> ## Last-Updated: nov 30 2022 (17:33) 
 > ##           By: Brice Ozenne
-> ##     Update #: 54
+> ##     Update #: 76
 > ##----------------------------------------------------------------------
 > ## 
 > ### Commentary: 
@@ -36,13 +36,13 @@ Type 'q()' to quit R.
 > 
 > ## cd /projects/biostat01/people/hpl802/pipeline/
 > ## ## INTERACTIVE
-> ## source("BATCH_simulation-scenario3.R")
+> ## source("BATCH_simulation-scenario1.R")
 > ## ## BATCH
 > ## for ITER in `seq 1 10`;
 > ## do
-> ## eval 'R CMD BATCH --vanilla "--args iter_sim='$ITER' n.iter_sim=10" BATCH_simulation-scenario3.R output/simulation-scenario3/simulation-scenario3-'$ITER'.Rout &'
+> ## eval 'R CMD BATCH --vanilla "--args iter_sim='$ITER' n.iter_sim=10" BATCH_simulation-scenario1.R output/simulation-scenario1/simulation-scenario1-'$ITER'.Rout &'
 > ## done
-> ## 390564-390573
+> ## 235119-235128
 > 
 > ## * SLURM
 > args <- commandArgs(TRUE) ## BATCH MODE
@@ -67,14 +67,14 @@ iteration 8 over 100 (seed 13903)
 > 
 > ## * Prepare export
 > path <- "."
-> path.res <- file.path(path,"Results","simulation-scenario3")
+> path.res <- file.path(path,"Results","simulation-scenario1")
 > if(dir.exists(path.res)==FALSE){
 +     if(dir.exists(file.path(path,"Results"))==FALSE){
 +     dir.create(file.path(path,"Results"))
 +     }
 +     dir.create(path.res)
 + }
-> path.output <- file.path(path,"output","simulation-scenario3")
+> path.output <- file.path(path,"output","simulation-scenario1")
 > if(dir.exists(path.output)==FALSE){
 +     if(dir.exists(file.path(path,"output"))==FALSE){
 +     dir.create(file.path(path,"output"))
@@ -104,49 +104,52 @@ The following object is masked from ‘package:base’:
 > ## * Parameters
 > seqN <- c(10, 25, 50, 100, 200, 500)
 > beta <- 0.5
-> n.sim <- c(100,10) ## number of simulations, number of times proportion is esitmated
-> n.cpus <- 50
-> Sigma <- as.matrix(bdiag((diag(0.05,15,15) + 0.95)*2.5, matrix(0.25), matrix(5), matrix(7.5), matrix(10), matrix(15)))
+> n.sim <- c(100,10) ## number of simulations, number of times proportion is estimated
+> n.cpus <- 25
+> Sigma <- as.matrix(bdiag(diag(0.05,15,15) + 0.95,matrix(1),matrix(1),matrix(1),matrix(1),matrix(1)))
 > Sigmatot <- Sigma+diag(1,NROW(Sigma),NROW(Sigma))
-> ## cov2cor(Sigmatot)
 > 
-> ## * GLS weights
+> ## * Weights
 > ## solve(matrix(1, nrow = 1, ncol = NCOL(Sigma)) %*% solve(Sigma) %*% matrix(1, nrow = NCOL(Sigma), ncol = 1)) %*% matrix(1, nrow = 1, ncol = NCOL(Sigma)) %*% solve(Sigma)
 > cat("\n Relative variance: ")
 
  Relative variance: > relativeVar <- sqrt(diag(Sigmatot))/min(sqrt(diag(Sigmatot)))
-> print(table(round(relativeVar,4)))
-
-     1 1.6733 2.1909 2.6077 2.9665 3.5777 
-     1     15      1      1      1      1 
-> ## 1 1.6733 2.1909 2.6077 2.9665 3.5777 
-> ## 1     15      1      1      1      1 
+> print(table(relativeVar))
+relativeVar
+ 1 
+20 
+> ##  1 
+> ## 20 
 > 
 > cat("\n Pool weights: ")
 
  Pool weights: > Sigma2weight <- round(100*(1/diag(Sigmatot))/sum((1/diag(Sigmatot))),2)
 > print(table(unname(Sigma2weight)))
 
- 1.13  1.65  2.13  3.02  5.17 14.48 
-    1     1     1     1    15     1 
-> ## 1.13  1.65  2.13  3.02  5.17 14.48 
-> ##    1     1     1     1    15     1 
+ 5 
+20 
+> ##  5 
+> ## 20 
 > 
 > cat("\n GLS weights: ")
 
  GLS weights: > Sigma2weight <- round(100*colSums(solve(Sigmatot))/sum(solve(Sigmatot)),2)
 > print(table(unname(Sigma2weight)))
 
- 1.65   3.8  5.52  7.15 10.13 48.61 
-   15     1     1     1     1     1 
-> ## 1.65   3.8  5.52  7.15 10.13 48.61 
-> ##   15     1     1     1     1     1 
+ 1.88 14.37 
+   15     5 
+> ## 1.88 14.37 
+> ##   15     5 
+> cat("\n")
+
+> ## analyzeData(simData(n.obs = 1000, sigma.pipe = Sigma, beta = 0), proportion = FALSE, print.weight = TRUE)
+> ## analyzeData(simData(n.obs = 25, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2], print.weight = TRUE)
 > 
 > ## * Simulation
 > res <- NULL
-> for(iSim in 1:n.sim[1]){
+> for(iSim in 1:n.sim[1]){ ## iSim <- 1
 +     cat(iSim,": ")
-+     for(iN in seqN){ ## iN <- 200
++     for(iN in seqN){ ## iN <- 25
 +         cat(iN," ")
 +         try(res <- rbind(res,
 +                          cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0), proportion = iSim<=n.sim[2]))))
@@ -154,7 +157,7 @@ The following object is masked from ‘package:base’:
 +                          cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = beta), proportion = iSim<=n.sim[2]))))
 +     }
 +     cat("\n")
-+     saveRDS(res, file = file.path(path.res,paste0("scenario3_",iter_sim,"(tempo).rds")))
++     saveRDS(res, file = file.path(path.res,paste0("scenario1_",iter_sim,"(tempo).rds")))
 + }
 1 : 10  25  50  100  200  500  
 2 : 10  25  50  100  200  500  
@@ -259,10 +262,10 @@ The following object is masked from ‘package:base’:
 There were 50 or more warnings (use warnings() to see the first 50)
 > cat("\n")
 
-> 
+>     
 > ## * Export
 > rownames(res) <- NULL
-> saveRDS(res, file = file.path(path.res,paste0("scenario3_",iter_sim,".rds")))
+> saveRDS(res, file = file.path(path.res,paste0("scenario1_",iter_sim,".rds")))
 > sessionInfo()
 R version 4.1.2 (2021-11-01)
 Platform: x86_64-pc-linux-gnu (64-bit)
@@ -306,8 +309,8 @@ loaded via a namespace (and not attached):
 > 
 > 
 > ##----------------------------------------------------------------------
-> ### BATCH_simulation-scenario3.R ends here
+> ### BATCH_simulation-scenario1.R ends here
 > 
 > proc.time()
     user   system  elapsed 
-2591.189    2.835 2625.122 
+4572.891    1.021 4628.480 
