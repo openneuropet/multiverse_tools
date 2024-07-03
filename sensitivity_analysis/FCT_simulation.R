@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: dec  8 2022 (12:05) 
+## Last-Updated: feb 24 2023 (16:36) 
 ##           By: Brice Ozenne
-##     Update #: 64
+##     Update #: 68
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -55,6 +55,19 @@ simData <- function(n.obs, sigma.pipe, beta, df = Inf){
 ## * analyzeData
 analyzeData <- function(data, proportion, print.weight = FALSE, df = TRUE){
     require(LMMstar)
+    require(lme4)
+    require(lmerTest)
+    
+    ## table(data$long[, .N, by = "id"][[2]])
+    e.lmerCS <- lmer(Ypip ~ X + (1|id), data = data$long) 
+    pool.ranef <- data.frame(estimate = unname(fixef(e.lmerCS)["XMale"]),
+                             se = summary(e.lmerCS)$coef["XMale","Std. Error"],
+                             df = summary(e.lmerCS)$coef["XMale","df"],
+                             lower = confint(e.lmerCS, parm = "XMale", method = "Wald", quiet = TRUE)[1,1],
+                             upper = confint(e.lmerCS, parm = "XMale", method = "Wald", quiet = TRUE)[1,2],
+                             p.value = summary(e.lmerCS)$coef["XMale","Pr(>|t|)"])
+    ##e.lmerUN <- lmer(Ypip ~ X + (0+pipeline|id), data = data$long, control = lmerControl(check.nobs.vs.nRE = "ignore"))
+
     e.mlmm <- do.call(mlmm, list(Ypip ~ X, repetition = ~1|id, data = data$long, by = "pipeline", effects = "XMale=0", df = df, trace = FALSE))
     pool.average <- confint(e.mlmm, method = "average", columns = c("estimate","se","df","lower","upper","p.value"))
     pool.fixse <- confint(e.mlmm, method = "pool.fixse", columns = c("estimate","se","df","lower","upper","p.value"))
@@ -82,7 +95,8 @@ analyzeData <- function(data, proportion, print.weight = FALSE, df = TRUE){
             sep = "")
     }
 
-    out <- rbind(average = pool.average,
+    out <- rbind(ranef = pool.ranef,
+                 average = pool.average,
                  fixse = pool.fixse,
                  gls = pool.gls,
                  gls1 = pool.gls1,

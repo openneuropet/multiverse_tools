@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: dec  9 2022 (18:36) 
+## Last-Updated: dec  5 2023 (17:36) 
 ##           By: Brice Ozenne
-##     Update #: 77
+##     Update #: 82
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -286,8 +286,8 @@ color.forest <- c(rep("black",8), gg_color_hue(6)[1:4])
     
 ls.forestRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
 
-    iGG <- plot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls","pool.gls1"), size.text = 11,
-                add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5, shape = shape.forest, color = color.forest), plot = FALSE)$plot
+    iGG <- autoplot(eMLMM, type = "forest", method = c("none","average","pool.se","pool.gls","pool.gls1"), size.text = 11,
+                    add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5, shape = shape.forest, color = color.forest))$plot
     iYlabel <- ggplot_build(iGG)$layout$panel_params[[1]]$y$get_labels()
     iGG <- iGG + scale_x_discrete(breaks = iYlabel,
                                   labels = gsub("average", "pool (average)",
@@ -370,9 +370,14 @@ png(file.path("figures","application-figure-forestRS.png"), width = 1000, heigh 
 gg.forestRS
 dev.off()
 
+jpeg(file.path("figures","application-figure-forestRS.jpeg"), width = 1000, heigh = 650, quality = 150)
+gg.forestRS
+dev.off()
+
 for(iR in names(ls.mlmmRS)){ ## iR <- names(ls.mlmmRS)[1]
     
     pdf(file.path("figures",paste0("application-figure-",iR,".pdf")), width = 12)
+    jpeg(file.path("figures",paste0("application-figure-",iR,".jpeg")), quality = 150, width = 1000, height = 500)
     XXX <- egg::ggarrange(ls.forestRS[[iR]] + ggtitle(NULL) + theme(text = element_text(size=15)),ls.heatRS.txt[[iR]], ncol = 2, widths = c(0.4,0.6),
                           newpage = FALSE, draw = TRUE, top = ggpubr::text_grob(stringr::str_to_title(iR), color = "black", face = "bold", size = 20))
     dev.off()
