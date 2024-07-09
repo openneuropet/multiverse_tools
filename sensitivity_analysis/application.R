@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: dec  5 2023 (17:36) 
+## Last-Updated: jul  9 2024 (14:13) 
 ##           By: Brice Ozenne
-##     Update #: 82
+##     Update #: 84
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -60,12 +60,15 @@ rename.region <-  as.data.frame(rbind(c(combined = "amygdala",    left = "Left-A
 ## * Import data
 
 ## ** pipeline data
-ls.dfraw <- c(lapply(1:4, function(iPip){ ## iPip <- 1
-    cbind(pipeline.index = iPip, read_xls(file.path("data","correlatedData_intervention.xls"), sheet = iPip, .name_repair = "minimal"))
-}),
-lapply(5:9, function(iPip){
-    cbind(pipeline.index = iPip, read_xls(file.path("data","uncorrelatedData_intervention.xls"), sheet = iPip-4, .name_repair = "minimal"))
-})
+## ls.dfraw[[1]]
+## ls.dfraw[[2]]
+ls.dfraw <- c(
+    lapply(1:4, function(iPip){ ## iPip <- 1
+        cbind(pipeline.index = iPip, read_xls(file.path("data","correlatedData_intervention.xls"), sheet = iPip, .name_repair = "minimal"))
+    }),
+    lapply(5:9, function(iPip){
+        cbind(pipeline.index = iPip, read_xls(file.path("data","uncorrelatedData_intervention.xls"), sheet = iPip-4, .name_repair = "minimal"))
+    })
 )
 
 ## remove pipeline 5 which is the same as pipeline 1
@@ -315,13 +318,15 @@ gg.forestRS <- do.call(egg::ggarrange,c(ls.forestRScrop, list(nrow = 3)))
 ls.heatRS.txt <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
     iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0.5,1.0001), midpoint = 0.75, mid = "yellow", value.text = TRUE, value.round = 3, value.size = 4))
     iGG <- iPlot$plot + xlab("") + ylab("")
+    iGG <- iGG + scale_y_discrete(limits = rev)
     iGG <- iGG + theme(plot.margin=unit(c(0,0,0,0),"cm"), axis.text.x = element_text(angle = 90, hjust = 1))
     return(iGG)
 })[sort(name.region)]
 
-ls.heatRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[1]]
+ls.heatRS <- lapply(ls.mlmmRS, function(eMLMM){ ## eMLMM <- ls.mlmmRS[[5]]
     iPlot <- plot(eMLMM, type = "heat", plot = FALSE, add.args = list(limits = c(0.1,1.0001), midpoint = 0.55, mid = "yellow"), size.text = 12)
     iGG <- iPlot$plot + ggtitle(rename.region$full[rename.region$combined==eMLMM$object$outcome]) + xlab("") + ylab("")
+    iGG <- iGG + scale_y_discrete(limits = rev)
     iGG <- iGG + theme(plot.margin=unit(c(0,0,0,0),"cm"), axis.text.x = element_text(angle = 90, hjust = 1))
     return(iGG)
 })[sort(name.region)]
@@ -346,41 +351,46 @@ ls.heatRScrop <- c(ls.heatRScrop[1:4], list(ggpubr::as_ggplot(ggpubr::get_legend
 gg.heatRS <- do.call(egg::ggarrange, c(ls.heatRScrop, list(nrow = 3, ncol = 5)))
 
 ## export
-pdf(file.path("figures","application-figure-data.pdf"), width = 12)
+pdf(file.path("figures","figure-application-data.pdf"), width = 12)
 gg.data
 dev.off()
 
-png(file.path("figures","application-figure-data.png"), width = 1000, heigh = 650)
+png(file.path("figures","figure-application-data.png"), width = 1000, heigh = 650)
 gg.data
 dev.off()
 
-pdf(file.path("figures","application-figure-heatmapRS.pdf"), width = 12)
+pdf(file.path("figures","figure-application-heatmapRS.pdf"), width = 12)
 gg.heatRS
 dev.off()
 
-png(file.path("figures","application-figure-heatmapRS.png"), width = 1000, heigh = 650)
+png(file.path("figures","figure-application-heatmapRS.png"), width = 1000, heigh = 650)
 gg.heatRS
 dev.off()
 
-pdf(file.path("figures","application-figure-forestRS.pdf"), width = 12)
+pdf(file.path("figures","figure-application-forestRS.pdf"), width = 12)
 gg.forestRS
 dev.off()
 
-png(file.path("figures","application-figure-forestRS.png"), width = 1000, heigh = 650)
+png(file.path("figures","figure-application-forestRS.png"), width = 1000, heigh = 650)
 gg.forestRS
 dev.off()
 
-jpeg(file.path("figures","application-figure-forestRS.jpeg"), width = 1000, heigh = 650, quality = 150)
+jpeg(file.path("figures","figure-application-forestRS.jpeg"), width = 1000, heigh = 650, quality = 150)
 gg.forestRS
 dev.off()
 
 for(iR in names(ls.mlmmRS)){ ## iR <- names(ls.mlmmRS)[1]
     
-    pdf(file.path("figures",paste0("application-figure-",iR,".pdf")), width = 12)
-    jpeg(file.path("figures",paste0("application-figure-",iR,".jpeg")), quality = 150, width = 1000, height = 500)
+    pdf(file.path("figures",paste0("figure-application-",iR,".pdf")), width = 12)
     XXX <- egg::ggarrange(ls.forestRS[[iR]] + ggtitle(NULL) + theme(text = element_text(size=15)),ls.heatRS.txt[[iR]], ncol = 2, widths = c(0.4,0.6),
                           newpage = FALSE, draw = TRUE, top = ggpubr::text_grob(stringr::str_to_title(iR), color = "black", face = "bold", size = 20))
     dev.off()
+
+    jpeg(file.path("figures",paste0("figure-application-",iR,".jpeg")), quality = 150, width = 1000, height = 500)
+    XXX <- egg::ggarrange(ls.forestRS[[iR]] + ggtitle(NULL) + theme(text = element_text(size=15)),ls.heatRS.txt[[iR]], ncol = 2, widths = c(0.4,0.6),
+                          newpage = FALSE, draw = TRUE, top = ggpubr::text_grob(stringr::str_to_title(iR), color = "black", face = "bold", size = 20))
+    dev.off()
+
 }
 
 
@@ -392,13 +402,14 @@ gg.heatG <- gg.heatG + scale_y_discrete(breaks = unique(pp.heatG$data$row),
 txt <- gsub(" |\\:","",gsub("pipeline=", "", gsub("variable", "", unique(pp.heatG$data$col), fixed = TRUE), fixed = TRUE))
 gg.heatG <- gg.heatG + scale_x_discrete(breaks = unique(pp.heatG$data$col),
                               labels = substr(txt,1,2))
+gg.heatG <- gg.heatG + scale_y_discrete(limits = rev)
 gg.heatG
 
 
-pdf(file.path("figures","application-figure-heatmapG.pdf"), width = 12)
+pdf(file.path("figures","figure-application-heatmapG.pdf"), width = 12)
 gg.heatG
 dev.off()
-png(file.path("figures","application-figure-heatmapG.png"), heigh = 650, width = 1000)
+png(file.path("figures","figure-application-heatmapG.png"), heigh = 650, width = 1000)
 gg.heatG
 dev.off()
 
