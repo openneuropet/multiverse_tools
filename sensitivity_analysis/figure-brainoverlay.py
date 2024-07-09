@@ -23,10 +23,10 @@ def extract_estimator_results(resultsFile,estimator,rename_region):
     - rename_region: dataframe wih renaming that brice originally created in R
 
     Returns:
-    - region_value_pairs: 
+    - renamed_region_value_pairs: dictionary with full names as in FreeSurfer and the region value 
     """
     # Load data into pandas dataframe
-    results = pd.read_csv(resultsFile)
+    results = pd.read_csv(resultsFile, sep=',')
     # Extract only the relevant rows for the four estimators
     rowLabelsEst = np.where(results['type']==estimator)
     # Extract the estimate for those rows from the results
@@ -35,12 +35,40 @@ def extract_estimator_results(resultsFile,estimator,rename_region):
     regions = results['region'].unique()
     # Pair the region with each value in the results file
     region_value_pairs = {name: value for name, value in zip(regions, estimatorVal)}
-    # Create the mapping dictionary from combined to full names
-    combined_to_full_mapping = dict(zip(rename_region['combined'], rename_region['full']))
+    # Create the mapping dictionary from resultsName to overlayName
+    resultsName_to_overlayName_mapping = dict(zip(rename_region['resultsName'], rename_region['overlayName']))
     # Create a new dictionary with renamed keys
-    renamed_region_value_pairs = {combined_to_full_mapping.get(key, key): value for key, value in region_value_pairs.items()}
+    renamed_region_value_pairs = {resultsName_to_overlayName_mapping.get(key, key): value for key, value in region_value_pairs.items()}
 
     return renamed_region_value_pairs 
+
+def extract_atlas_results(atlasFile,tracer,rename_region):
+    """
+    Extract the values from the resultsFile for a given estimator
+
+    Parameters:
+    - atlasFile: File with atlas results per region
+    - tracer: string with traceer name used in the atlas
+    - rename_region: dataframe wih renaming that brice originally created in R
+
+    Returns:
+    - renamed_region_value_pairs: dictionary with full names as in FreeSurfer and the region value 
+    """
+    # Load data into pandas dataframe
+    atlas = pd.read_csv(atlasFile, sep=',')
+    # reduce it to only the DASB column
+    # Extract the estimate for those rows from the results
+    atlasVal = atlas[tracer]
+    # Extract the unique regions from the data
+    regions = atlas['Region'].unique()
+    # Pair the region with each value in the results file
+    region_atlas_pairs = {name: value for name, value in zip(regions, atlasVal)}
+    # Create the mapping dictionary from atlasName to overlayName
+    atlasName_to_overlayName_mapping = dict(zip(rename_region['atlasName'], rename_region['overlayName']))
+    # Create a new dictionary with renamed keys
+    renamed_region_atlas_pairs = {atlasName_to_overlayName_mapping.get(key, key): value for key, value in region_atlas_pairs.items()}
+
+    return renamed_region_atlas_pairs 
 
 
 def find_region_index(names, region_name):
@@ -73,13 +101,14 @@ def find_region_index(names, region_name):
     return None
 
 
-def create_freesurfer_overlay(annot_file, surf_file, region_value_pairs, output_file):
+def create_freesurfer_overlay(annot_file, surf_file, region_value_pairs, atlas_value_pairs, output_file):
     """
     Create a FreeSurfer overlay using an annotation file and a dictionary of region-value pairs.
 
     Parameters:
     - annot_file (str): Path to the FreeSurfer annotation file (.annot).
     - region_value_pairs (dict): Dictionary of region names and their corresponding estimator values.
+    - atlas_value_pairs (dict): Dictionary of region names and their corresponding atlas values for a specific tracer.
     - output_file (str): Path to save the output NIfTI file.
 
     Returns:
@@ -99,8 +128,9 @@ def create_freesurfer_overlay(annot_file, surf_file, region_value_pairs, output_
     # Find the correct region indices and apply the values
     for region_name, value in region_value_pairs.items():
         index = find_region_index(names, region_name)
+        atlasValue = eval(atlas_value_pairs[region_name])
         if index is not None:
-            overlay[labels == index] = value
+            overlay[labels == index] = value - atlasValue
         else:
             print(f"Warning: The region '{region_name}' was not found in the annotation file.")
 
@@ -116,26 +146,39 @@ def create_freesurfer_overlay(annot_file, surf_file, region_value_pairs, output_
 
 # Utilize the same name matching as Brice has done in application.R line 42 to get the correct labels for the overlay
 data = {
-    'combined': ["amygdala", "thalamus", "putamen", "caudate", "ACC", "hippocampus", "OFC", "SFC", "OC", "STG", "insula", "ITG", "PC", "EC"],
-        'full': ["amygdala", "thalamus", "putamen", "caudate", "anteriorcingulate", "hippocampus", "orbitofrontal", "superiorfrontal", "occipital", "superiortemporal", "insula", "inferiortemporal", "parietal", "entorhinal"]
+    'resultsName': ["amygdala", "thalamus", "putamen", "caudate", "ACC", "hippocampus", "OFC", "SFC", "OC", "STG", "insula", "ITG", "PC", "EC"],
+    'overlayName': ["amygdala", "thalamus", "putamen", "caudate", "rostralanteriorcingulate", "hippocampus", "medialorbitofrontal", "superiorfrontal", "lateraloccipital", "superiortemporal", "insula", "inferiortemporal", "superiorparietal", "entorhinal"]
     #'position':["subcortical","subcortical","subcortical","subcortical","cortical","subcortical","cortical","cortical","cortical","cortical","cortical","cortical","cortical","cortical"]
 }
 # Create the DataFrame
 rename_region = pd.DataFrame(data)
 
+# Utilize the same name matching as Brice has done in application.R line 120 to get the correct labels for the overlay
+data2 = {
+    'atlasName': ["Amygdala", "Thalamus", "Putamen", "Caudate", "Rostral Anterior", "Hippocampus", "Medial Orbito Frontal", "Superior Frontal", "Lateral Occipital", "Superior Temporal", "Insula", "Inferior Temporal", "Superior Parietal", "Entorhinal"],
+    'overlayName': ["amygdala", "thalamus", "putamen", "caudate", "rostralanteriorcingulate", "hippocampus", "medialorbitofrontal", "superiorfrontal", "lateraloccipital", "superiortemporal", "insula", "inferiortemporal", "superiorparietal", "entorhinal"]
+    #'position':["subcortical","subcortical","subcortical","subcortical","cortical","subcortical","cortical","cortical","cortical","cortical","cortical","cortical","cortical","cortical"]
+}
+# Create the DataFrame
+rename_region2 = pd.DataFrame(data2)
+
 # Extract pipeline results first
 resultsFile = pwd+'results/data-gg-forest.csv'
+
+# Extract atlas results first
+atlasFile = pwd+'data/bp_table.csv'
 
 estimators = ['average','pool.se','pool.gls','pool.gls1']
 for estimator in estimators:
     region_value_pairs = extract_estimator_results(resultsFile,estimator,rename_region)
+    atlas_value_pairs = extract_atlas_results(atlasFile,'[11C]DASB',rename_region2)
 
     # Create the overlay on the surfaces
     annot_file = fsaveragePath + '/label/lh.aparc.annot'  # Path to your annotation file
     surf_file = fsaveragePath + '/surf/lh.pial'  # Path to pial surface file
-    output_file = pwd+'figures/lh.overlay_'+estimator  # Path to save the output overlay file
+    output_file = pwd+'figures/lh.overlay_atlasDiff_'+estimator  # Path to save the output overlay file
 
-    create_freesurfer_overlay(annot_file, surf_file, region_value_pairs, output_file)
+    create_freesurfer_overlay(annot_file, surf_file, region_value_pairs,atlas_value_pairs, output_file)
 
 
  
