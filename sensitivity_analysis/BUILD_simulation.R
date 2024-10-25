@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 16 2022 (09:44) 
 ## Version: 
-## Last-Updated: dec  8 2022 (15:46) 
+## Last-Updated: okt 25 2024 (09:46) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 49
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,6 +26,8 @@ path.results <- file.path(path,"Results") ## path.results <- "Results"
 path.results1 <- file.path(path.results,"simulation-scenario1")
 path.results2 <- file.path(path.results,"simulation-scenario2")
 path.results3 <- file.path(path.results,"simulation-scenario3")
+path.results4 <- file.path(path.results,"simulation-scenario4")
+path.results5 <- file.path(path.results,"simulation-scenario5")
 
 ## * Dependencies
 library(data.table)
@@ -70,11 +72,15 @@ loadRes <- function(path, tempo.file = FALSE, type = NULL,
 dt.sim1 <- loadRes(path.results1, tempo.file = TRUE)
 dt.sim2 <- loadRes(path.results2, tempo.file = TRUE)
 dt.sim3 <- loadRes(path.results3, tempo.file = TRUE)
+dt.sim4 <- loadRes(path.results4, tempo.file = TRUE)
+dt.sim5 <- loadRes(path.results5, tempo.file = TRUE)
 ## dt.sim1[n == 1000 & type=="average" & beta == 0, .N, by = c("type","n","beta","file")]
 
 dt.sim <- rbind(cbind(scenario = "scenario 1", dt.sim1),
                 cbind(scenario = "scenario 2", dt.sim2),
-                cbind(scenario = "scenario 3", dt.sim3))
+                cbind(scenario = "scenario 3", dt.sim3),
+                cbind(scenario = "scenario 4", dt.sim4),
+                cbind(scenario = "scenario 5", dt.sim5))
 
 ## * Check
 ## unique(dt.sim$n)

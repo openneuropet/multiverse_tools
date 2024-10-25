@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2022 (11:48) 
 ## Version: 
-## Last-Updated: jul  3 2024 (15:39) 
+## Last-Updated: okt 25 2024 (12:09) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 61
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -56,25 +56,31 @@ dtS.sim[,sd.lower := exp(log(sd) + qnorm(0.025)/sqrt(2*(rep-1)))]
 ## sd(X)/sqrt(2*(NROW(X)-1))
 ## 1/sqrt(2*(NROW(X)-1))
 
-## * Figure 1
+## * Figure 2
 
 dtSpool.sim <- dtS.sim[target=="pool" & type %in% c("average", "fixse", "gls", "gls1")]
 
 ## ** bias
-ggPool.bias <- ggplot(dtSpool.sim, aes(x = n.char, y = average, linetype = target, group = type.char)) 
-ggPool.bias <- ggPool.bias + geom_ribbon(aes(ymin = average.lower, ymax = average.upper), alpha = 0.25)
-ggPool.bias <- ggPool.bias + geom_hline(aes(yintercept = beta), color = "brown") + facet_grid(beta.char~scenario) 
+ggPool.bias <- ggplot(dtSpool.sim, aes(x = n.char, y = average-GS, linetype = target, group = type.char)) 
+ggPool.bias <- ggPool.bias + geom_ribbon(aes(ymin = average.lower-GS, ymax = average.upper-GS), alpha = 0.25)
+ggPool.bias <- ggPool.bias + geom_hline(aes(yintercept = 0), color = "brown") + facet_grid(beta.char~scenario) 
 ggPool.bias <- ggPool.bias + geom_point(size = 2, aes(shape = type.char, color = type.char)) + geom_line(linewidth = 1, aes(color = type.char))
 ggPool.bias <- ggPool.bias + labs(x = "Sample size (per group)", y = "Estimate", shape = "", color = "") + guides(linetype = "none")
 ggPool.bias <- ggPool.bias + scale_color_manual(values = unname(palette.colors()[c(7,5,4,3)]))
+ggPool.bias <- ggPool.bias + scale_color_manual(values = unname(palette.colors()[c(7,5,4,3)]),
+                                              breaks = paste0("pool (",c("average","se","gls","constrained gls"),")"),
+                                              labels = c(expression(hat(Psi)["average"]),expression(hat(Psi)["pool-se"]),expression(hat(Psi)["GLS"]),expression(hat(Psi)["constrained GLS"])))
+ggPool.bias <- ggPool.bias + scale_shape_manual(values = c(15,17,19,8),
+                                            breaks = paste0("pool (",c("average","se","gls","constrained gls"),")"),
+                                            labels = c(expression(hat(Psi)["average"]),expression(hat(Psi)["pool-se"]),expression(hat(Psi)["GLS"]),expression(hat(Psi)["constrained GLS"])))
 ggPool.bias <- ggPool.bias + theme_minimal() + theme(legend.position="bottom",
                                                      text = element_text(size=15), 
                                                      axis.line = element_line(linewidth = 1.25),
-                                                     axis.ticks = element_line(size = 2),
+                                                     axis.ticks = element_line(linewidth = 2),
                                                      axis.ticks.length=unit(.25, "cm"),
                                                      legend.key.size = unit(3,"line"))
+ggPool.bias + coord_cartesian(ylim = c(-0.02,0.02))
 ggPool.bias
-## ggPool.bias + coord_cartesian(ylim = c(-0.01,0.01))
 
 
 ## ** se
@@ -91,7 +97,7 @@ ggPool.se <- ggPool.se + scale_shape_manual(values = c(15,17,19,8),
                                             labels = c(expression(hat(Psi)["average"]),expression(hat(Psi)["pool-se"]),expression(hat(Psi)["GLS"]),expression(hat(Psi)["constrained GLS"])))
 ggPool.se <- ggPool.se + theme_minimal() + theme(legend.position="bottom",
                                                  text = element_text(size=15), 
-                                                 axis.line = element_line(size = 1.25),
+                                                 axis.line = element_line(linewidth = 1.25),
                                                  axis.ticks = element_line(size = 2),
                                                  axis.ticks.length=unit(.25, "cm"),
                                                  legend.key.size = unit(3,"line"))
@@ -102,12 +108,12 @@ ggPoolLog.se <- ggPool.se + coord_trans(y="log10") + ylab("Standard deviation (l
 ggPoolLog.se
 
 ## under the null
-ggPoolLog.seH0 <- ggPoolLog.se %+% dtSpool.sim[beta == 0,]
+ggPoolLog.seH0 <- ggPoolLog.se %+% dtSpool.sim[beta == 0 & scenario %in% paste0("scenario ",1:3),]
 ggPoolLog.seH0 <- ggPoolLog.seH0 + scale_y_continuous(breaks = c(0.1,0.5,1,1.5), labels = paste0("     ",c(0.1,0.5,1,1.5)))
 ggPoolLog.seH0
 
 ## under the alternative
-ggPoolLog.seH1 <- ggPoolLog.se %+% dtSpool.sim[beta == 0.5,]
+ggPoolLog.seH1 <- ggPoolLog.se %+% dtSpool.sim[beta == 0.5 & scenario %in% paste0("scenario ",1:3),]
 ggPoolLog.seH1 <- ggPoolLog.seH1 + scale_y_continuous(breaks = c(0.1,0.5,1,1.5), labels = paste0("     ",c(0.1,0.5,1,1.5)))
 ggPoolLog.seH1
 
@@ -137,13 +143,13 @@ ggPoolLog.rejection <- ggPool.rejection + coord_trans(y="log10") + ylab("Rejecti
 ggPoolLog.rejection
 
 ## under the null
-ggPoolLog.type1 <- ggPoolLog.rejection %+% dtSpool.sim[beta == 0,]
+ggPoolLog.type1 <- ggPoolLog.rejection %+% dtSpool.sim[beta == 0 & scenario %in% paste0("scenario ",1:3),]
 ggPoolLog.type1 <- ggPoolLog.type1 + scale_y_continuous(breaks = c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),
                                                 labels = scales::percent)
 ggPoolLog.type1
 
 ## under the alternative
-ggPoolLog.power <- ggPoolLog.rejection %+% dtSpool.sim[beta == 0.5,]
+ggPoolLog.power <- ggPoolLog.rejection %+% dtSpool.sim[beta == 0.5 & scenario %in% paste0("scenario ",1:3),]
 ggPoolLog.power <- ggPoolLog.power + scale_y_continuous(breaks = c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),
                                                 labels = scales::percent)
 ggPoolLog.power
@@ -176,8 +182,7 @@ png(file.path("figures","figure-simulation-pool-H1.png"), width = 1000, height =
 figure2.bis
 dev.off()
 
-
-## * Figure 2
+## * Figure 3
 
 dtSprop.sim <- dtS.sim[target=="proportion"]
 dtSprop.sim[,beta := as.numeric(beta>0)]
@@ -202,11 +207,11 @@ ggProp.bias
 ## ggProp.bias + coord_cartesian(ylim = c(-0.01,0.01))
 
 ## under the null
-ggProp.biasH0 <- ggProp.bias %+% dtSprop.sim[beta == 0,]
+ggProp.biasH0 <- ggProp.bias %+% dtSprop.sim[beta == 0 & scenario %in% paste0("scenario ",1:3),]
 ggProp.biasH0
 
 ## under the alternative
-ggProp.biasH1 <- ggProp.bias %+% dtSprop.sim[beta > 0,]
+ggProp.biasH1 <- ggProp.bias %+% dtSprop.sim[beta > 0 & scenario %in% paste0("scenario ",1:3),]
 ggProp.biasH1
 
 ## ** se
@@ -232,12 +237,12 @@ ggPropLog.se <- ggProp.se + coord_trans(y="log10") + ylab("Standard deviation (l
 ggPropLog.se
 
 ## under the null
-ggPropLog.seH0 <- ggPropLog.se %+% dtSprop.sim[beta == 0,]
+ggPropLog.seH0 <- ggPropLog.se %+% dtSprop.sim[beta == 0 & scenario %in% paste0("scenario ",1:3),]
 ggPropLog.seH0 <- ggPropLog.seH0 + scale_y_continuous(breaks = c(0.10,0.08,0.06,0.04), labels = paste0("     ",c(0.10,0.08,0.06,0.04)))
 ggPropLog.seH0
 
 ## under the alternative
-ggPropLog.seH1 <- ggPropLog.se %+% dtSprop.sim[beta > 0,]
+ggPropLog.seH1 <- ggPropLog.se %+% dtSprop.sim[beta > 0 & scenario %in% paste0("scenario ",1:3),]
 ggPropLog.seH1 <- ggPropLog.seH1 + scale_y_continuous(breaks = c(0.4,0.3,0.2,0.1,0.05), labels = paste0("     ",c(0.4,0.3,0.2,0.1,0.05)))
 ggPropLog.seH1
 
@@ -305,6 +310,24 @@ png(file.path("figures","figure-simulation-proportion-H1.png"), width = 1000, he
 figure3.bis
 dev.off()
 
+## * Figure C & D
+
+pdf(file.path("figures","figure-simulation-pool-bias.pdf"), width = 10, height = 7)
+ggPool.bias + coord_cartesian(ylim = c(-0.01,0.4)) + ylab("Bias")
+dev.off()
+
+xxx <- ggarrange(ggPool.se %+% dtSpool.sim[scenario %in% paste0("scenario ",4:5)], ggPool.rejection %+% dtSpool.sim[scenario %in% paste0("scenario ",4:5)], nrow = 1,
+                 legend = "bottom", common.legend = TRUE)
+pdf(file.path("figures","figure-simulation-pool-scenario4_5.pdf"), width = 10, height = 7)
+xxx
+dev.off()
+
+
+yyy <- ggarrange(ggProp.bias %+% dtSprop.sim[scenario %in% paste0("scenario ",4:5)], ggProp.se %+% dtSprop.sim[scenario %in% paste0("scenario ",4:5)], nrow = 1,
+                 legend = "bottom", common.legend = TRUE)
+pdf(file.path("figures","figure-simulation-proportion-scenario4_5.pdf"), width = 10, height = 7)
+yyy
+dev.off()
 
 
 
