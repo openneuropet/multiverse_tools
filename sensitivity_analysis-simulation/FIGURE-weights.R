@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Oct 11 2022 (12:03) 
 ## Version: 
-## Last-Updated: jul  3 2024 (15:39) 
+## Last-Updated: okt 28 2024 (17:38) 
 ##           By: Brice Ozenne
-##     Update #: 11
+##     Update #: 12
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,10 +16,11 @@
 ### Code:
 
 library(ggplot2)
+library(Matrix)
 
 
 Sigma3 <- as.matrix(bdiag((diag(0.05,15,15) + 0.95)*2.5, matrix(0.25), matrix(5), matrix(7.5), matrix(10), matrix(15)))
-Sigmatot3 <- Sigma3+diag(1,NROW(Sigma3),NROW(Sigma3))
+Sigmatot3 <- Sigma3+1
 
 ## average
 weight3.average <- 1/NROW(Sigmatot3)

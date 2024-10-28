@@ -19,6 +19,9 @@ statistical analyses". It is organized as follows:
 - *the TEXT files* generate the text reported in the result section
 
 
+# multiverse_tools
+tools helping with multiverse analyses
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(LMMstar)
 sessionInfo()

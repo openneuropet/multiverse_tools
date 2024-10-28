@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2022 (11:48) 
 ## Version: 
-## Last-Updated: okt 25 2024 (12:09) 
+## Last-Updated: okt 28 2024 (17:22) 
 ##           By: Brice Ozenne
-##     Update #: 61
+##     Update #: 62
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -313,7 +313,7 @@ dev.off()
 ## * Figure C & D
 
 pdf(file.path("figures","figure-simulation-pool-bias.pdf"), width = 10, height = 7)
-ggPool.bias + coord_cartesian(ylim = c(-0.01,0.4)) + ylab("Bias")
+ggPool.bias + coord_cartesian(ylim = c(-0.02,0.03)) + ylab("Bias")
 dev.off()
 
 xxx <- ggarrange(ggPool.se %+% dtSpool.sim[scenario %in% paste0("scenario ",4:5)], ggPool.rejection %+% dtSpool.sim[scenario %in% paste0("scenario ",4:5)], nrow = 1,
