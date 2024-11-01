@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt 25 2024 (16:01) 
+## Last-Updated: nov  1 2024 (10:22) 
 ##           By: Brice Ozenne
-##     Update #: 91
+##     Update #: 95
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -81,11 +81,13 @@ simData <- function(n.obs, sigma.pipe, beta, df = Inf, half.distribution = FALSE
     }
     
     for(iP in 1:n.pipe){
+        dtW.data[, c(paste0("Epip.",iP)) := noise.pipeline[,iP]]
         dtW.data[, c(paste0("Ypip.",iP)) := Y + noise.pipeline[,iP]]
     }
 
     ## move to long format
-    dtL.data <- melt(dtW.data, id.vars = c("id","X","X.num"),
+    dtL.data <- melt(dtW.data[,.SD,.SDcols = c("id","X","X.num",paste0("Ypip.",1:n.pipe))],
+                     id.vars = c("id","X","X.num"),
                      measure.vars = paste0("Ypip.",1:n.pipe),
                      value.name = "Ypip", variable.name = "pipeline")
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 15 2022 (16:48) 
 ## Version: 
-## Last-Updated: okt 25 2024 (10:07) 
+## Last-Updated: nov  1 2024 (11:35) 
 ##           By: Brice Ozenne
-##     Update #: 76
+##     Update #: 77
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -109,9 +109,9 @@ for(iSim in 1:n.sim[1]){ ##
     for(iN in seqN){ ## iN <- 200
         cat(iN," ")
         try(res <- rbind(res,
-                         cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0, df = 5), proportion = iSim<=n.sim[2]))))
+                         cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = 0, df = 3), proportion = iSim<=n.sim[2]))))
         try(res <- rbind(res,
-                         cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = beta, df = 5), proportion = iSim<=n.sim[2]))))
+                         cbind(sim = iSim, seed = iSeed, analyzeData(simData(n.obs = iN, sigma.pipe = Sigma, beta = beta, df = 3), proportion = iSim<=n.sim[2]))))
     }
     cat("\n")
     saveRDS(res, file = file.path(path.res,paste0("scenario4_",iter_sim,"(tempo).rds")))

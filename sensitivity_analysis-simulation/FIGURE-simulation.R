@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2022 (11:48) 
 ## Version: 
-## Last-Updated: okt 28 2024 (17:22) 
+## Last-Updated: nov  1 2024 (11:34) 
 ##           By: Brice Ozenne
-##     Update #: 62
+##     Update #: 63
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -190,7 +190,7 @@ dtSprop.sim[,beta := as.numeric(beta>0)]
 ## ** bias
 ggProp.bias <- ggplot(dtSprop.sim, aes(x = n.char, y = average, linetype = target, group = type.char)) 
 ggProp.bias <- ggProp.bias + geom_ribbon(aes(ymin = average.lower, ymax = average.upper), alpha = 0.25)
-ggProp.bias <- ggProp.bias + geom_hline(aes(yintercept = beta), color = "brown") + facet_grid(beta.char~scenario, scales = "free") 
+ggProp.bias <- ggProp.bias + geom_hline(aes(yintercept = pmax(0.05,beta)), color = "brown") + facet_grid(beta.char~scenario, scales = "free") 
 ggProp.bias <- ggProp.bias + geom_point(size = 4, aes(shape = type.char, color = type.char)) + geom_line(linewidth = 1, aes(color = type.char))
 ggProp.bias <- ggProp.bias + labs(x = "Sample size (per group)", y = "Average estimate", shape = "Proportion", color = "Proportion") + guides(linetype = "none")
 ggProp.bias <- ggProp.bias + scale_color_manual(values = unname(palette.colors()[c(2,6)]), breaks = c("proportion (np)","proportion (p)"),

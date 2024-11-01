@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug 24 2022 (17:53) 
 ## Version: 
-## Last-Updated: jul  9 2024 (14:13) 
+## Last-Updated: nov  1 2024 (16:28) 
 ##           By: Brice Ozenne
-##     Update #: 84
+##     Update #: 86
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,8 +17,8 @@
 
 library(data.table)
 library(ggplot2)
-library(readxl)
 library(LMMstar)
+library(pbapply)
 library(egg) ## ggarrange
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
@@ -39,20 +39,20 @@ dicoMatin.region <- matrix(c(6, 13, 1, 8, 3, 10, 2, 9, 39, 73, 5, 12, 27, 61, 24
                            dimnames = list(c("amygdala", "thalamus", "putamen", "caudate", "ACC", "hippocampus", "OFC", "SFC", "OC", "STG", "insula", "ITG", "PC", "EC"), c("left","right")))
 ## Switch around OC and SFC
 
-rename.region <-  as.data.frame(rbind(c(combined = "amygdala",    left = "Left-Amygdala",            right = "Right-Amygdala", full = "Amygdala"),
-                                      c(combined = "thalamus",    left = "Left-Thalamus-Proper",     right = "Right-Thalamus-Proper", full = "Thalamus"),
-                                      c(combined = "putamen",     left = "Left-Putamen",             right = "Right-Putamen", full = "Putamen"),           
-                                      c(combined = "caudate",     left = "Left-Caudate",             right = "Right-Caudate", full = "Caudate"),           
-                                      c(combined = "ACC",         left = "rostralanteriorcingulate", right = "rostralanteriorcingulate2", full = "Anterior cingulate cortex"),
-                                      c(combined = "hippocampus", left = "Left-Hippocampus",         right = "Right-Hippocampus", full = "Hippocampus"),
-                                      c(combined = "OFC",         left = "medialorbitofrontal",      right = "medialorbitofrontal2", full = "Orbital frontal cortex"),     
-                                      c(combined = "SFC",         left = "superiorfrontal",          right = "superiorfrontal2", full = "Superior frontal cortex"),        
-                                      c(combined = "OC",          left = "lateraloccipital",         right = "lateraloccipital2", full = "Occipital cortex"),         
-                                      c(combined = "STG",         left = "superiortemporal",         right = "superiortemporal2", full = "Superior temporal gyrus"),        
-                                      c(combined = "insula",      left = "insula",                   right = "insula2", full = "Insula"),                  
-                                      c(combined = "ITG",         left = "inferiortemporal",         right = "inferiortemporal2", full = "Inferior temporal gyrus"),        
-                                      c(combined = "PC",          left = "superiorparietal",         right = "superiorparietal2", full = "Parietal cortex"),        
-                                      c(combined = "EC",          left = "entorhinal",               right = "entorhinal2", full = "Entorhinal cortex")
+rename.region <-  as.data.frame(rbind(c(combined = "amygdala",    left = "Left.Amygdala",            right = "Right.Amygdala", full = "Amygdala"),
+                                      c(combined = "thalamus",    left = "Left.Thalamus.Proper",     right = "Right.Thalamus.Proper", full = "Thalamus"),
+                                      c(combined = "putamen",     left = "Left.Putamen",             right = "Right.Putamen", full = "Putamen"),           
+                                      c(combined = "caudate",     left = "Left.Caudate",             right = "Right.Caudate", full = "Caudate"),           
+                                      c(combined = "ACC",         left = "rostralanteriorcingulate", right = "rostralanteriorcingulate.1", full = "Anterior cingulate cortex"),
+                                      c(combined = "hippocampus", left = "Left.Hippocampus",         right = "Right.Hippocampus", full = "Hippocampus"),
+                                      c(combined = "OFC",         left = "medialorbitofrontal",      right = "medialorbitofrontal.1", full = "Orbital frontal cortex"),     
+                                      c(combined = "SFC",         left = "superiorfrontal",          right = "superiorfrontal.1", full = "Superior frontal cortex"),        
+                                      c(combined = "OC",          left = "lateraloccipital",         right = "lateraloccipital.1", full = "Occipital cortex"),         
+                                      c(combined = "STG",         left = "superiortemporal",         right = "superiortemporal.1", full = "Superior temporal gyrus"),        
+                                      c(combined = "insula",      left = "insula",                   right = "insula.1", full = "Insula"),                  
+                                      c(combined = "ITG",         left = "inferiortemporal",         right = "inferiortemporal.1", full = "Inferior temporal gyrus"),        
+                                      c(combined = "PC",          left = "superiorparietal",         right = "superiorparietal.1", full = "Parietal cortex"),        
+                                      c(combined = "EC",          left = "entorhinal",               right = "entorhinal.1", full = "Entorhinal cortex")
                                       ))
 
                     
@@ -60,16 +60,25 @@ rename.region <-  as.data.frame(rbind(c(combined = "amygdala",    left = "Left-A
 ## * Import data
 
 ## ** pipeline data
-## ls.dfraw[[1]]
-## ls.dfraw[[2]]
+## ls.dfraw <- c(
+##     lapply(1:4, function(iPip){ ## iPip <- 1
+##         cbind(pipeline.index = iPip, read.csv(file.path("data","correlatedData_intervention.xls"), sheet = iPip, .name_repair = "minimal"))
+##     }),
+##     lapply(5:9, function(iPip){
+##         cbind(pipeline.index = iPip, read_xls(file.path("data","uncorrelatedData_intervention.xls"), sheet = iPip-4, .name_repair = "minimal"))
+##     })
+## )
 ls.dfraw <- c(
     lapply(1:4, function(iPip){ ## iPip <- 1
-        cbind(pipeline.index = iPip, read_xls(file.path("data","correlatedData_intervention.xls"), sheet = iPip, .name_repair = "minimal"))
+        cbind(pipeline.index = iPip, read.csv(file.path("data",paste0("correlatedData_intervention",iPip,".csv")), sep = ";", dec = ","))
     }),
-    lapply(5:9, function(iPip){
-        cbind(pipeline.index = iPip, read_xls(file.path("data","uncorrelatedData_intervention.xls"), sheet = iPip-4, .name_repair = "minimal"))
+    lapply(1:5, function(iPip){
+        cbind(pipeline.index = 4+iPip, read.csv(file.path("data",paste0("uncorrelatedData_intervention",iPip,".csv")), sep = ";", dec = ","))
     })
 )
+
+## ls.dfraw[[1]]
+## ls.dfraw[[2]]
 
 ## remove pipeline 5 which is the same as pipeline 1
 range(ls.dfraw[[1]][,-(1:2)]-ls.dfraw[[5]][,-(1:2)])
@@ -109,9 +118,10 @@ dtW <- dtav
 dtL <- melt(dtW, id.vars = c("index.pipeline","index","pipeline"))
 
 ## ** atlas data
-dfAll.atlas <- read.csv(file.path("data","bp_table.csv"))
-df.atlas <- dfAll.atlas[-1,1:10]
+dfAll.atlas <- read.csv(file.path("data","bp_table.csv"), sep = ",", dec = ".")
+df.atlas <- dfAll.atlas[-1,2:11]
 names(df.atlas) <- c("mean.DASB","sd.DASB","mean.cumi","sd.cumi","mean.az","sd.az","mean.cimbi","sd.cimbi","mean.sb","sd.sb")
+rownames(df.atlas) <- dfAll.atlas[[1]][-1]
 
 type.region <- which(rowSums(df.atlas!="")==0)
 reptype.region <- diff(c(type.region,NROW(df.atlas)+1))
