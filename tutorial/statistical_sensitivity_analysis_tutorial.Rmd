@@ -26,7 +26,7 @@ library(ggplot2)
 
 # Data Simulation
 
-We will first simulate data for a multiverse scenario. Below is an example of simulating three different noise structures (homoscedastic, heteroscedastic, and correlated heteroscedastic noise):
+We will first simulate data for a multiverse scenario.
 
 ```{## ** parametrisation}
 n.obs <- 500 ## number of subjects in each group
