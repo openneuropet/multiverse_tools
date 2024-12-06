@@ -37,7 +37,7 @@ dtW.data <- data.table(id = 1:(2*n.obs),
                        X = X,
                        X.num = as.numeric(X)-1,
                        Y = rnorm(2*n.obs, mean = beta*(as.numeric(X)-1), sd = 1)) ## Y is not observed
-noise.pipeline <- rmvnorm(n=2*n.obs, sigma = Sigma)
+noise.pipeline <- rmvnorm(n=2*n.obs, sigma = noise.Sigma)
 dtW.data <- cbind(dtW.data, matrix(dtW.data$Y, ncol = n.pipe, nrow = 2*n.obs, byrow = FALSE) + noise.pipeline)
 names(dtW.data) <- c("id","X","X.num","Y",paste0("Ypip.",1:n.pipe))
 
