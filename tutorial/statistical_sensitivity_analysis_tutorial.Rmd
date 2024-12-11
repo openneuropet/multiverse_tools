@@ -1,30 +1,34 @@
-### mlmm-tutorial.R --- 
-##----------------------------------------------------------------------
-## Author: Brice Ozenne
-## Created: okt 25 2024 (16:23) 
-## Version: 
-## Last-Updated: okt 25 2024 (17:00) 
-##           By: Brice Ozenne
-##     Update #: 14
-##----------------------------------------------------------------------
-## 
-### Commentary: 
-## 
-### Change Log:
-##----------------------------------------------------------------------
-## 
-### Code:
+---
+title: "Statistical Sensitivity Analysis Tutorial"
+author: "Brice Ozenne"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
 
-library(mvtnorm)
+# Introduction
+
+This tutorial demonstrates a sensitivity analysis framework for multiverse analyses, following the approach described in the manuscript "A sensitivity analysis of preprocessing pipelines: Toward a solution for multiverse analyses". The framework uses statistical tools for assessing the heterogeneity of multiple preprocessing pipelines and testing hypotheses across them.
+
+# Setup
+
+Load the necessary R packages:
+
+```{library(mvtnorm)}
 library(Matrix)
 library(LMMstar)
 library(data.table)
 library(ggplot2)
+```
 
+# Data Simulation
 
-## * Simulate data
+We will first simulate data for a multiverse scenario.
 
-## ** parametrisation
+```{## ** parametrisation}
 n.obs <- 500 ## number of subjects in each group
 beta <- 0.5 ## group difference
 noise.Sigma <- as.matrix(bdiag((diag(0.05,15,15) + 0.95)*2.5, matrix(0.25), matrix(5), matrix(7.5), matrix(10), matrix(15))) ## noise distribution
@@ -37,7 +41,7 @@ dtW.data <- data.table(id = 1:(2*n.obs),
                        X = X,
                        X.num = as.numeric(X)-1,
                        Y = rnorm(2*n.obs, mean = beta*(as.numeric(X)-1), sd = 1)) ## Y is not observed
-noise.pipeline <- rmvnorm(n=2*n.obs, sigma = noise.Sigma)
+noise.pipeline <- rmvnorm(n=2*n.obs, sigma = Sigma)
 dtW.data <- cbind(dtW.data, matrix(dtW.data$Y, ncol = n.pipe, nrow = 2*n.obs, byrow = FALSE) + noise.pipeline)
 names(dtW.data) <- c("id","X","X.num","Y",paste0("Ypip.",1:n.pipe))
 
@@ -45,18 +49,19 @@ names(dtW.data) <- c("id","X","X.num","Y",paste0("Ypip.",1:n.pipe))
 dtL.data <- melt(dtW.data, id.vars = c("id","X","X.num"),
                  measure.vars = paste0("Ypip.",1:n.pipe),
                  value.name = "Ypip", variable.name = "pipeline")
+```
 
-## * Analysis
+# Analysis - fit pipeline specific models & get pipeline specific estimates
 
-## ** fit pipeline specific models & get pipeline specific estimates
-## run multiple linear model, one per pipeline (argument by), and extract the test w.r.t. the gender effect (argument effects).
-## the argument repetition enables to keep track of the structure of the data to be able to perform statistical inference accounting for within-subject correlation.
-e.mlmm <- mlmm(Ypip ~ X, data = dtL.data,
+We run multiple linear models, one per pipeline (argument by), and extract the test w.r.t. the gender effect (argument effects). The argument repetition enables to keep track of the structure of the data to be able to perform statistical inference accounting for within-subject correlation.
+
+```{e.mlmm <- mlmm(Ypip ~ X, data = dtL.data,}
                repetition = ~1|id,
                by = "pipeline",
                effects = "XMale=0")
 
 summary(e.mlmm)
+
 ## 	Linear Mixed Models stratified according to "pipeline"  [TOFIX: mixed should be removed]
 
 ## Statistical inference for XMale  [TOFIX: wrong se is displayed]
@@ -108,8 +113,11 @@ confint(e.mlmm, method = "average", columns = c("estimate","se","df","lower","up
 confint(e.mlmm, method = "pool.fixse", columns = c("estimate","se","df","lower","upper","p.value"))
 confint(e.mlmm, method = "pool.gls", columns = c("estimate","se","df","lower","upper","p.value"))
 confint(e.mlmm, method = "pool.gls1", columns = c("estimate","se","df","lower","upper","p.value"))
+```
 
-## ** forest plot
+# Visualization
+
+```{## ** forest plot}
 plot(e.mlmm) ## without global effect estimators
 
 plot(e.mlmm, method = c("none","average","pool.se","pool.gls","pool.gls1"))
@@ -122,5 +130,8 @@ plot(e.mlmm, method = c("none","average","pool.se","pool.gls","pool.gls1"),
 
 ## ** proportion estimator
 confint(e.mlmm, method = "proportion", columns = c("estimate","se","df","lower","upper","p.value"))
-##----------------------------------------------------------------------
-### mlmm-tutorial.R ends here
+```
+
+# Conclusion
+
+This tutorial provides an overview of using R for sensitivity analysis of multiverse pipelines. For further details, refer to the original paper and the corresponding R code. If anything is not clear, or you would like to see additional scenarios added to this tutorial, we encourage you to open an issue here on GitHub.
