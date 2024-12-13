@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 25 2024 (16:23) 
 ## Version: 
-## Last-Updated: okt 25 2024 (17:00) 
+## Last-Updated: dec 13 2024 (10:17) 
 ##           By: Brice Ozenne
-##     Update #: 14
+##     Update #: 22
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,10 +17,12 @@
 
 library(mvtnorm)
 library(Matrix)
-library(LMMstar)
+library(LMMstar) 
 library(data.table)
 library(ggplot2)
 
+## check LMMstar version (should be 1.1.0)
+packageVersion("LMMstar")
 
 ## * Simulate data
 
@@ -56,7 +58,7 @@ e.mlmm <- mlmm(Ypip ~ X, data = dtL.data,
                by = "pipeline",
                effects = "XMale=0")
 
-summary(e.mlmm)
+summary(e.mlmm) ## summary result across all pipeline
 ## 	Linear Mixed Models stratified according to "pipeline"  [TOFIX: mixed should be removed]
 
 ## Statistical inference for XMale  [TOFIX: wrong se is displayed]
@@ -87,7 +89,7 @@ summary(e.mlmm)
 ##   Model-based standard errors are derived from the observed information (column se). 
 ##   Degrees of freedom were computed using a Satterthwaite approximation (column df). 
 
-summary(e.mlmm$model[[1]])
+summary(e.mlmm$model[[1]]) ## fitted model for the first pipeline
 
 ## ** [optional] evaluate each pipeline in term of s.e. and how they correlate
 e.mlmm_vcov <- vcov(e.mlmm) 
@@ -100,7 +102,7 @@ sqrt(diag(e.mlmm_vcov)) ## standard error w.r.t. each pipeline
 ##    Ypip.15    Ypip.16    Ypip.17    Ypip.18    Ypip.19    Ypip.20 
 ## 0.11706961 0.07212763 0.15997801 0.18662571 0.20905938 0.25548422 
 
-range(cov2cor(e.mlmm_vcov)) ## correlation between pipeline estimates
+range(cov2cor(e.mlmm_vcov)[lower.tri(e.mlmm_vcov)]) ## correlation between pipeline estimates
 plot(e.mlmm, "heat") ## automatic graphical display
 
 ## ** global effect estimator
@@ -109,18 +111,31 @@ confint(e.mlmm, method = "pool.fixse", columns = c("estimate","se","df","lower",
 confint(e.mlmm, method = "pool.gls", columns = c("estimate","se","df","lower","upper","p.value"))
 confint(e.mlmm, method = "pool.gls1", columns = c("estimate","se","df","lower","upper","p.value"))
 
+A more concise syntax is:
+model.tables(e.mlmm, method = c("average","pool.fixse","pool.gls","pool.gls1"))
+##             estimate         se       df     lower     upper      p.value
+## average    0.5451426 0.09819519 998.1996 0.3524499 0.7378352 3.627388e-08
+## pool.fixse 0.5318695 0.09918758 998.1996 0.3372294 0.7265096 1.021237e-07
+## pool.gls   0.5330522 0.06967958 998.1996 0.3963169 0.6697875 4.707346e-14
+## pool.gls1  0.5330522 0.06967958 998.1996 0.3963169 0.6697875 4.707346e-14
+
 ## ** forest plot
 plot(e.mlmm) ## without global effect estimators
 
 plot(e.mlmm, method = c("none","average","pool.se","pool.gls","pool.gls1"))
 
-## make it more pretty
+## Tune forest plot
 shape.forest <- c(rep(19,20),c(15,17,19,8))
 color.forest <- c(rep("black",20), palette.colors()[2:5])
 plot(e.mlmm, method = c("none","average","pool.se","pool.gls","pool.gls1"), 
      add.args = list(size.estimate = 2.5, size.ci = 1, width.ci = 0.5, shape = shape.forest, color = color.forest))
 
 ## ** proportion estimator
-confint(e.mlmm, method = "proportion", columns = c("estimate","se","df","lower","upper","p.value"))
+proportion(e.mlmm, method = "single-step", n.sample = 0)
+##             estimate se df lower upper p.value
+## proportion 0.8914785 NA NA    NA    NA      NA
+
+
+## confint(e.mlmm, method = "proportion", columns = c("estimate","se","df","lower","upper","p.value"))
 ##----------------------------------------------------------------------
 ### mlmm-tutorial.R ends here
